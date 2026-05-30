@@ -249,10 +249,25 @@ export function mergePortfolioItems(saved) {
 
 export const CLIENT_ITEM_COUNT = 17;
 
-const CLIENT_TITLES = Array.from(
-  { length: CLIENT_ITEM_COUNT },
-  (_, i) => `Client ${String(i + 1).padStart(2, "0")}`
-);
+const CLIENT_TITLES = [
+  "AAO",
+  "Adidas",
+  "BBH London",
+  "Belstaff",
+  "Brit Awards",
+  "Genentech",
+  "Guinness",
+  "London Marathon",
+  "Motion Mapping",
+  "Outernet",
+  "PA",
+  "Spotify",
+  "Baby Teeth",
+  "CDW",
+  "engageWorks",
+  "Modon",
+  "RSA",
+];
 
 const CLIENT_TAGLINES = [
   "Brand activation",
@@ -274,17 +289,32 @@ const CLIENT_TAGLINES = [
   "Long-term partnership",
 ];
 
-const CLIENT_IMAGE_FILES = Array.from(
-  { length: CLIENT_ITEM_COUNT },
-  (_, i) => `client-${String(i + 1).padStart(2, "0")}.png`
-);
+const CLIENT_IMAGE_FILES = [
+  "AAO_6d051.jpg",
+  "Adidas_55df4.jpg",
+  "BBH_London_318ba.jpeg",
+  "Belstaff_5cea6.jpg",
+  "Brit_Awards_1137a.jpeg",
+  "Genentech-Logo.wine_afc41.png",
+  "Guinness_2c485.jpg",
+  "London_Marathon_02b79.png",
+  "MotionMapping.jpg",
+  "Outernet_354e4.png",
+  "PA_7b36e.jpg",
+  "Spotify_ef334.png",
+  "baby_teeth_logo.jpg",
+  "cdw_sq_936fe.webp",
+  "engageWorks.jpg",
+  "modon.webp",
+  "rsa.jpg",
+];
 
 export const DEFAULT_CLIENT_ITEMS = Array.from(
   { length: CLIENT_ITEM_COUNT },
   (_, i) => ({
     title: CLIENT_TITLES[i] || `Client ${String(i + 1).padStart(2, "0")}`,
     tagline: CLIENT_TAGLINES[i] || "Collaboration",
-    image: `assets/clients/${CLIENT_IMAGE_FILES[i]}`,
+    image: `assets/clients/${CLIENT_IMAGE_FILES[i] || `${String(i + 1).padStart(2, "0")}.jpg`}`,
   })
 );
 
