@@ -1,0 +1,687 @@
+/* ============================================================
+   John Middlehurst — Portfolio
+   Global styles, snap layout, side-scrolling text typography
+   ============================================================ */
+
+:root {
+  --bg: #000000;
+  --fg: #ffffff;
+  --fg-dim: rgba(255, 255, 255, 0.65);
+  --fg-faint: rgba(255, 255, 255, 0.35);
+  --accent-purple: #a855f7;
+  --accent-green: #22c55e;
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+
+  --section-pad-x: clamp(1.5rem, 6vw, 6rem);
+  --section-pad-y: clamp(2rem, 8vh, 6rem);
+  /* Independent vertical insets for the two text groups. JS overrides these
+     at runtime via document.documentElement.style.setProperty(). */
+  --text-pad-top: clamp(2rem, 8vh, 6rem);
+  --text-pad-bottom: clamp(2rem, 8vh, 6rem);
+  /* Darkens the two background canvases. 0 = full brightness, 1 = fully black.
+     Useful to improve white-text contrast on top of bright fluid effects. */
+  --bg-dim: 0;
+  /* Alpha applied to the body-copy text color. 1 = pure white, 0 = invisible.
+     Element opacity is animated by GSAP independently; this controls the
+     resting brightness when fully revealed. */
+  --body-text-alpha: 0.65;
+
+  --text-max: 56rem;
+  /* Multiplier on the display-title font-size clamp. Lets the user shrink
+     the title independently from --text-max so the headline never crops
+     when the body width is narrowed. */
+  --title-font-scale: 1;
+  /* Visibility of the background canvases. Tweened by SnapScroll between
+     scenes so blank-background sections (e.g. portfolio) can hide them. */
+  --bg-opacity: 1;
+  /* Independent text-width cap for the portfolio scene tagline / body so
+     resizing the global --text-max doesn't squeeze the portfolio copy. */
+  --portfolio-text-max: 56rem;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+  overscroll-behavior: none;
+  cursor: default;
+}
+
+body {
+  position: fixed;
+  inset: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* ---------- Background canvases ---------- */
+/*
+   Stacking (bottom -> top):
+     #bg-canvas      (z 0)   WebGL: tunnel particles for the about scene,
+                             and the vortex fallback when WebGPU is missing.
+                             Transparent in fluid mode so #fluid-canvas shows through.
+     #fluid-canvas   (z 1)   WebGPU: fluid simulation + morph particles for the hero.
+                             Hidden when WebGPU is unavailable.
+     .sections       (z 5)   text + nav (mostly pointer-events: none, see below)
+     .site-header    (z 10)
+*/
+#bg-canvas,
+#fluid-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  display: block;
+  background: transparent;
+  filter: brightness(calc(1 - var(--bg-dim)));
+  opacity: var(--bg-opacity);
+}
+#bg-canvas    { z-index: 0; }
+#fluid-canvas { z-index: 1; }
+
+/* Solid black behind everything so transparent canvases get a true black void */
+body { background: #000; }
+
+/* ---------- Header ---------- */
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem clamp(1.5rem, 4vw, 3rem);
+  pointer-events: none;
+}
+
+.site-header > * {
+  pointer-events: auto;
+}
+
+.brand {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.125rem;
+  letter-spacing: 0.18em;
+  color: var(--fg);
+  mix-blend-mode: difference;
+}
+
+.site-nav {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.nav-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: transparent;
+  transition: background 400ms ease, border-color 400ms ease, transform 400ms ease;
+}
+
+.nav-dot:hover {
+  border-color: rgba(255, 255, 255, 0.9);
+  transform: scale(1.15);
+}
+
+.nav-dot.is-active {
+  background: var(--fg);
+  border-color: var(--fg);
+  transform: scale(1.15);
+}
+
+/* ---------- Settings toggle (gear) ---------- */
+.settings-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-left: 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: var(--fg);
+  background: transparent;
+  mix-blend-mode: difference;
+  transition: background 200ms ease, border-color 200ms ease,
+    transform 250ms ease, opacity 200ms ease;
+  opacity: 0.65;
+}
+
+.settings-toggle:hover {
+  opacity: 1;
+  border-color: rgba(255, 255, 255, 0.85);
+  transform: rotate(30deg);
+}
+
+.settings-toggle.is-active {
+  opacity: 1;
+  background: var(--fg);
+  color: #000;
+  border-color: var(--fg);
+  transform: rotate(60deg);
+}
+
+.settings-toggle svg {
+  display: block;
+}
+
+.settings-toggle[hidden] {
+  display: none;
+}
+
+/* ---------- Sections ---------- */
+.sections {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.section {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: stretch;
+  padding: var(--text-pad-top) var(--section-pad-x) var(--text-pad-bottom);
+  opacity: 0;
+  visibility: hidden;
+  /* Sections always let pointer events through so the fluid canvas (below) can splat. */
+  pointer-events: none;
+}
+
+.section.is-active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.text-stage {
+  width: 100%;
+  /* Note: --text-max no longer constrains the stage itself. It's applied to
+     the non-title children below so the display-title can keep the section's
+     full width even when the user narrows the body copy. */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  /* Side-scroll wrapper: x is animated by GSAP. Vertical layout is split into
+     top/bottom groups so the headline sits high and the body copy sits low. */
+}
+
+.text-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: 1;
+  width: 100%;
+  /* The .text-block__top and .text-block__bottom groups are pushed apart by
+     flex; section padding handles the breathing room above/below. */
+}
+
+.text-block__top,
+.text-block__bottom {
+  width: 100%;
+}
+
+.text-block__top > * + *,
+.text-block__bottom > * + * {
+  margin-top: clamp(0.75rem, 1.2vw, 1.25rem);
+}
+
+.eyebrow {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 0.75rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  margin: 0;
+  max-width: var(--text-max);
+}
+
+.display-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  /* Title font scales by --title-font-scale (set via Tweakpane). The clamp
+     bounds also scale so the headline shrinks proportionally on narrow
+     viewports just as before. */
+  font-size: clamp(
+    calc(3rem * var(--title-font-scale)),
+    calc(9vw * var(--title-font-scale)),
+    calc(7.5rem * var(--title-font-scale))
+  );
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: var(--fg);
+  text-wrap: balance;
+}
+
+.display-title .line {
+  display: block;
+  overflow: hidden;
+}
+
+.tagline {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.125rem, 1.75vw, 1.5rem);
+  line-height: 1.35;
+  color: var(--fg);
+  margin: 0;
+  max-width: min(var(--text-max), 42rem);
+  text-wrap: balance;
+}
+
+.body-copy {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: clamp(0.95rem, 1.05vw, 1.0625rem);
+  line-height: 1.7;
+  color: rgba(255, 255, 255, var(--body-text-alpha));
+  margin: 0;
+  max-width: min(var(--text-max), 38rem);
+}
+
+/* ---------- Carousel scenes (portfolio + clients) ---------- */
+
+/* Both carousel sections use a column layout: text group at the top-centre,
+   carousel filling the lower portion. */
+.section--portfolio .text-stage,
+.section--clients .text-stage {
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.section--portfolio .text-block,
+.section--clients .text-block {
+  align-items: center;
+  text-align: center;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+}
+
+.text-block__top--centered {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  /* Anchor the text group near the top of the section, not vertically
+     centred. Slight downward offset for breathing room from the header. */
+  margin-top: clamp(0rem, 2vh, 2rem);
+}
+
+.text-block__top--centered .eyebrow,
+.text-block__top--centered .display-title,
+.text-block__top--centered .tagline,
+.text-block__top--centered .body-copy {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+/* Carousel scenes get their own width cap (--portfolio-text-max) for the
+   tagline + body so the global --text-max only governs hero/about. */
+.section--portfolio .tagline,
+.section--clients .tagline {
+  max-width: var(--portfolio-text-max);
+}
+.section--portfolio .body-copy,
+.section--clients .body-copy {
+  max-width: var(--portfolio-text-max);
+}
+
+/* Portfolio carousel: 12 items, larger rectangular tiles. */
+.section--portfolio .portfolio-carousel {
+  --carousel-item-width: clamp(240px, 28vw, 380px);
+  --carousel-item-height: clamp(150px, 17.5vw, 240px);
+  --carousel-center-scale: 1.32;
+  --carousel-radius: calc(var(--carousel-item-width) * 2.5);
+  --carousel-stage-height: calc(var(--carousel-item-height) * var(--carousel-center-scale) + 2.5rem);
+}
+
+/* Clients carousel: 17 items, smaller square tiles with wider spacing. */
+.section--clients .portfolio-carousel {
+  --carousel-item-width: clamp(140px, 16vw, 220px);
+  --carousel-item-height: var(--carousel-item-width);
+  --carousel-center-scale: 1.22;
+  --carousel-radius: calc(var(--carousel-item-width) * 3.35);
+  --carousel-stage-height: calc(var(--carousel-item-width) * var(--carousel-center-scale) + 2rem);
+}
+
+.section--clients .carousel-item {
+  cursor: default;
+  pointer-events: none;
+}
+
+.section--clients .carousel-item.is-center {
+  cursor: default;
+}
+
+/* ---------- 3D Carousel ---------- */
+.portfolio-carousel {
+  flex: 1 1 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(1rem, 2.5vh, 2rem);
+  min-height: 0;
+  pointer-events: none;
+  margin-top: clamp(1.25rem, 3vh, 2.5rem);
+  /* Shared sizing tokens — referenced by the stage, track, and viewport
+     so the layout box always reserves enough room for the scaled centre
+     card without controls/caption overlapping the artwork. */
+  /* Shared defaults — overridden per scene below. */
+  --carousel-item-width: clamp(240px, 28vw, 380px);
+  --carousel-item-height: clamp(150px, 17.5vw, 240px);
+  --carousel-center-scale: 1.32;
+  --carousel-radius: calc(var(--carousel-item-width) * 2.5);
+  --carousel-stage-height: calc(var(--carousel-item-height) * var(--carousel-center-scale) + 2.5rem);
+}
+
+.carousel-stage {
+  position: relative;
+  width: 100%;
+  max-width: min(100%, calc(var(--carousel-item-width) * var(--carousel-center-scale) + 2rem));
+  /* Fixed height derived from the largest (centre) card so 3D overflow
+     stays inside this box and doesn't bleed into siblings. */
+  flex: 0 0 auto;
+  height: var(--carousel-stage-height);
+  min-height: var(--carousel-stage-height);
+  perspective: 1500px;
+  perspective-origin: 50% 50%;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+
+.carousel-track {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  /* GSAP tweens --carousel-angle, the variable below feeds the transform.
+     The inner translateZ pulls the cylinder back from the camera so the
+     centre item sits at z=0 in screen space. */
+  transform: translateZ(calc(var(--carousel-radius) * -1)) rotateY(var(--carousel-angle, 0deg));
+  --carousel-angle: 0deg;
+}
+
+.carousel-item {
+  position: absolute;
+  /* Centre origin: each item is positioned at (0,0) of the track, then we
+     rotate it around y and translate forward by the cylinder radius. */
+  left: 0;
+  top: 0;
+  /* Width / height come from the same custom properties as the cylinder
+     radius (defined on .carousel-track) so they scale together — when the
+     viewport changes width, both the cards and the radius shrink in lock
+     step and the gap between cards stays visually constant. */
+  width: var(--carousel-item-width);
+  height: var(--carousel-item-height);
+  margin-left: calc(-1 * var(--carousel-item-width) / 2);
+  margin-top: calc(-1 * var(--carousel-item-height) / 2);
+  transform-style: preserve-3d;
+  transform: rotateY(var(--item-angle, 0deg)) translateZ(var(--carousel-radius)) scale(1);
+  filter: brightness(0.5) saturate(0.75);
+  transition: filter 320ms ease, transform 480ms cubic-bezier(0.22, 1, 0.36, 1);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  /* Each card explicitly opts in to events. The stage above is `none` so
+     hit-testing only considers the cards' rendered bounding boxes — this
+     is the most reliable pattern for 3D-transformed clickable elements. */
+  pointer-events: auto;
+  /* Hide items at the back of the cylinder for clarity. */
+  backface-visibility: hidden;
+}
+
+.carousel-item.is-center {
+  filter: brightness(1) saturate(1);
+  cursor: default;
+  /* Centre card grows toward the viewer so it reads clearly as the focus. */
+  transform: rotateY(var(--item-angle, 0deg)) translateZ(var(--carousel-radius))
+    scale(var(--carousel-center-scale));
+}
+
+.carousel-item__media {
+  width: 100%;
+  height: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  background: transparent;
+  box-shadow:
+    0 22px 60px rgba(0, 0, 0, 0.55),
+    0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.carousel-item__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* ---------- Active-item caption (single shared block below the stage) ----------
+   Sits below the image viewport with a reserved min-height so text never
+   overlaps the artwork, even while fading in/out. */
+.carousel-caption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  width: 100%;
+  flex-shrink: 0;
+  min-height: 3.75rem;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+}
+
+.carousel-caption__title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.05rem, 1.6vw, 1.5rem);
+  letter-spacing: 0.02em;
+  color: var(--fg);
+  margin: 0;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 280ms ease, transform 280ms ease;
+}
+
+.carousel-caption__tagline {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: clamp(0.85rem, 1vw, 1rem);
+  color: var(--fg-faint);
+  margin: 0.4rem 0 0;
+  max-width: var(--portfolio-text-max);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 280ms ease, transform 280ms ease;
+}
+
+.carousel-caption.is-visible .carousel-caption__title,
+.carousel-caption.is-visible .carousel-caption__tagline {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ---------- Controls ----------
+   Below the caption — images → title/tagline → prev/next. */
+.section--portfolio .carousel-controls,
+.section--clients .carousel-controls {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  flex-shrink: 0;
+  pointer-events: auto;
+}
+
+.carousel-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: var(--fg);
+  background: rgba(0, 0, 0, 0.35);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 200ms ease, border-color 200ms ease, transform 200ms ease;
+}
+
+.carousel-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.85);
+  transform: scale(1.06);
+}
+
+.carousel-btn:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 3px;
+}
+
+.carousel-btn svg {
+  display: block;
+}
+
+/* ---------- Scroll hint ---------- */
+.scroll-hint {
+  position: fixed;
+  bottom: clamp(1rem, 3vh, 2rem);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  transition: opacity 600ms ease;
+}
+
+.scroll-hint.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.scroll-hint__bar {
+  position: relative;
+  width: 30px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.25);
+  overflow: hidden;
+}
+
+.scroll-hint__dot {
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 8px;
+  height: 3px;
+  background: var(--fg);
+  animation: scroll-hint-dot 1.8s ease-in-out infinite;
+}
+
+@keyframes scroll-hint-dot {
+  0%   { transform: translateX(0);    opacity: 0; }
+  20%  { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translateX(22px); opacity: 0; }
+}
+
+/* ---------- No-script banner ---------- */
+.noscript-banner {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: grid;
+  place-items: center;
+  background: #000;
+  color: #fff;
+  font-family: var(--font-body);
+  padding: 2rem;
+  text-align: center;
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-hint__dot { animation: none; opacity: 0.8; }
+}
+
+/* ---------- Tweakpane (hidden until backtick) ---------- */
+.tp-container {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 100;
+  width: 320px;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(20px);
+  transition: opacity 200ms ease, transform 200ms ease;
+  font-size: 12px;
+}
+.tp-container.is-open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+}
+.tp-container::-webkit-scrollbar { width: 6px; }
+.tp-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+
+/* ---------- Small screens ---------- */
+@media (max-width: 640px) {
+  .site-header { padding: 1rem 1.25rem; }
+  .text-block > * + * { margin-top: 1rem; }
+}
