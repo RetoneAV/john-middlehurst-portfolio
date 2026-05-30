@@ -43,15 +43,15 @@ export function clearPreferences() {
 /* ---------- Layout / page-level params (live-edited via Tweakpane) ---------- */
 
 export const DEFAULT_LAYOUT_PARAMS = {
-  textPadTopVh: 8,         // distance from viewport top to the top text group (vh)
-  textPadBottomVh: 8,      // distance from viewport bottom to the bottom text group (vh)
-  textMaxRem: 56,          // max-width of each section's text stage (rem)
-  portfolioTextMaxRem: 56, // independent width cap for portfolio tagline / body
-  titleFontScale: 1,       // multiplier on the display-title font-size clamp
-  textStaggerScale: 1,     // multiplier on element-level stagger delays (intro + transitions)
-  lineStagger: 0.12,       // seconds between successive title lines
-  bgDim: 0,                // 0..1 darkening factor applied to background canvases
-  bodyTextAlpha: 0.65,     // 0..1 alpha for the body-copy color (resting brightness)
+  textPadTopVh: 14,
+  textPadBottomVh: 31.5,
+  textMaxRem: 25,
+  portfolioTextMaxRem: 56,
+  titleFontScale: 1,
+  textStaggerScale: 1,
+  lineStagger: 0.12,
+  bgDim: 0.4,
+  bodyTextAlpha: 0.64,
 };
 
 /** Mutates the document root's CSS custom properties for layout/UI. */
@@ -87,7 +87,7 @@ export function applyLayoutParams(params) {
 
 export const DEFAULT_TEXT_CONTENT = {
   hero: {
-    eyebrow:    "Portfolio \u0026 Services",
+    eyebrow:    "JM Studios",
     titleLine1: "John",
     titleLine2: "Middlehurst",
     tagline:    "Creative technologist and artist specialising in real-time interactive design and development",
@@ -175,33 +175,33 @@ export function applyTextContent(content) {
 export const PORTFOLIO_ITEM_COUNT = 12;
 
 const PORTFOLIO_TITLES = [
-  "Volumetric Point Cloud",
-  "Immersive LED Environment",
-  "Yeast Cell Experience",
-  "Belstaff Projection",
-  "Generative Tree Tunnel",
-  "Trade Show Display",
-  "Audio-Reactive Light Wall",
-  "Interactive Table Projection",
-  "Gesture-Controlled Particles",
-  "Adizero Immersive Run",
-  "Kaleidoscope Installation",
-  "Living Grid",
+  "Guinness Storehouse",
+  "Feel The Pull",
+  "Adidas London Marathon",
+  "Outernet London",
+  "Immersive Dining",
+  "Control The Swarm",
+  "Holodeck 3D Room",
+  "Belstaff",
+  "Interactive Photobooth",
+  "Real-Time Interactive AI Video",
+  "360 Projections",
+  "Gesture Control",
 ];
 
 const PORTFOLIO_TAGLINES = [
-  "Real-time depth capture and 3D reconstruction",
-  "Floor-to-ceiling digital rain installation",
-  "Interactive museum experience",
-  "Large-scale building portrait mapping",
-  "Particle-driven digital forest",
-  "Interactive exhibition booth content",
-  "Concert visual design and laser performance",
-  "Touch-responsive dining experience",
-  "Sensor-driven real-time visualisation",
-  "Interactive treadmill experience",
-  "Multi-screen narrative environment",
-  "Generative nature projection mapping",
+  "Interactive Floor Experience",
+  "Interactive Art Installation",
+  "Interactive Brand Activation",
+  "Data Visualisation",
+  "",
+  "Interactive Exhibition",
+  "Interactive Art installation",
+  "Projection Mapping",
+  "Trade Show Experience",
+  "",
+  "Immersive Experience",
+  "Real-Time Facial Analysis",
 ];
 
 /** Relative paths under assets/portfolio/ */
@@ -238,7 +238,7 @@ export function mergePortfolioItems(saved) {
       if (s && typeof s === "object") {
         if (typeof s.title === "string") out[i].title = s.title;
         if (typeof s.tagline === "string") out[i].tagline = s.tagline;
-        if (typeof s.image === "string") out[i].image = s.image;
+        if (typeof s.image === "string") out[i].image = s.image.replace(/\\/g, "/");
       }
     });
   }
@@ -249,74 +249,26 @@ export function mergePortfolioItems(saved) {
 
 export const CLIENT_ITEM_COUNT = 17;
 
-const CLIENT_TITLES = [
-  "AAO",
-  "Adidas",
-  "BBH London",
-  "Belstaff",
-  "Brit Awards",
-  "Genentech",
-  "Guinness",
-  "London Marathon",
-  "Motion Mapping",
-  "Outernet",
-  "PA",
-  "Spotify",
-  "Baby Teeth",
-  "CDW",
-  "engageWorks",
-  "Modon",
-  "RSA",
+/** Client logos in carousel order (titles/taglines intentionally blank). */
+export const DEFAULT_CLIENT_ITEMS = [
+  { title: "", tagline: "", image: "assets/clients/Adidas_55df4.jpg" },
+  { title: "", tagline: "", image: "assets/clients/Spotify_ef334.png" },
+  { title: "", tagline: "", image: "assets/clients/PA_7b36e.jpg" },
+  { title: "", tagline: "", image: "assets/clients/Brit_Awards_1137a.jpeg" },
+  { title: "", tagline: "", image: "assets/clients/Guinness_2c485.jpg" },
+  { title: "", tagline: "", image: "assets/clients/Belstaff_5cea6.jpg" },
+  { title: "", tagline: "", image: "assets/clients/Outernet_354e4.png" },
+  { title: "", tagline: "", image: "assets/clients/PA_7b36e.jpg" },
+  { title: "", tagline: "", image: "assets/clients/BBH_London_318ba.jpeg" },
+  { title: "", tagline: "", image: "assets/clients/cdw_sq_936fe.webp" },
+  { title: "", tagline: "", image: "assets/clients/AAO_6d051.jpg" },
+  { title: "", tagline: "", image: "assets/clients/Genentech-Logo.wine_afc41.png" },
+  { title: "", tagline: "", image: "assets/clients/rsa.jpg" },
+  { title: "", tagline: "", image: "assets/clients/modon.webp" },
+  { title: "", tagline: "", image: "assets/clients/baby_teeth_logo.jpg" },
+  { title: "", tagline: "", image: "assets/clients/engageWorks.jpg" },
+  { title: "", tagline: "", image: "assets/clients/MotionMapping.jpg" },
 ];
-
-const CLIENT_TAGLINES = [
-  "Brand activation",
-  "Retail experience",
-  "Live event",
-  "Product launch",
-  "Exhibition",
-  "Festival installation",
-  "Corporate event",
-  "Sports activation",
-  "Cultural institution",
-  "Agency collaboration",
-  "Global campaign",
-  "Immersive showcase",
-  "Brand partnership",
-  "Retail activation",
-  "Event production",
-  "Creative collaboration",
-  "Long-term partnership",
-];
-
-const CLIENT_IMAGE_FILES = [
-  "AAO_6d051.jpg",
-  "Adidas_55df4.jpg",
-  "BBH_London_318ba.jpeg",
-  "Belstaff_5cea6.jpg",
-  "Brit_Awards_1137a.jpeg",
-  "Genentech-Logo.wine_afc41.png",
-  "Guinness_2c485.jpg",
-  "London_Marathon_02b79.png",
-  "MotionMapping.jpg",
-  "Outernet_354e4.png",
-  "PA_7b36e.jpg",
-  "Spotify_ef334.png",
-  "baby_teeth_logo.jpg",
-  "cdw_sq_936fe.webp",
-  "engageWorks.jpg",
-  "modon.webp",
-  "rsa.jpg",
-];
-
-export const DEFAULT_CLIENT_ITEMS = Array.from(
-  { length: CLIENT_ITEM_COUNT },
-  (_, i) => ({
-    title: CLIENT_TITLES[i] || `Client ${String(i + 1).padStart(2, "0")}`,
-    tagline: CLIENT_TAGLINES[i] || "Collaboration",
-    image: `assets/clients/${CLIENT_IMAGE_FILES[i] || `${String(i + 1).padStart(2, "0")}.jpg`}`,
-  })
-);
 
 /** Returns a fresh client-items array (saved values override defaults). */
 export function mergeClientItems(saved) {
@@ -327,7 +279,7 @@ export function mergeClientItems(saved) {
       if (s && typeof s === "object") {
         if (typeof s.title === "string") out[i].title = s.title;
         if (typeof s.tagline === "string") out[i].tagline = s.tagline;
-        if (typeof s.image === "string") out[i].image = s.image;
+        if (typeof s.image === "string") out[i].image = s.image.replace(/\\/g, "/");
       }
     });
   }

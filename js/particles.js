@@ -79,17 +79,17 @@ const POINT_VERT = /* glsl */ `
   // Tunable defaults for the user-facing tunnel knobs. Cloned into instance
   // params so callers can mutate freely.
   export const DEFAULT_TUNNEL_PARAMS = {
-    particleSize: 1.0,         // multiplier on per-particle size
-    brightness: 1.0,           // multiplier on output color (0..3)
-    colorPrimary: "#a855f7",   // user gradient stop A (hex string for tweakpane)
-    colorSecondary: "#10b981", // user gradient stop B
-    colorMix: 0.0,             // 0 = procedural palette, 1 = pure user gradient
-    colorSaturation: 1.0,      // 0 = grayscale, >1 = punchier
-    cursorSteer: 1.0,          // multiplier on tunnel-end cursor offset
-    cursorParallax: 1.0,       // multiplier on camera position parallax
-    breath: 0.10,              // small per-particle organic motion (world units)
-    rotationSpeed: 0.0,         // resting spin around z (rad/s, positive = CCW)
-    transitionSpinTarget: 0.75, // peak spin during scene-transition envelope
+    particleSize: 4,
+    brightness: 1.01,
+    colorPrimary: "#55b8f7",
+    colorSecondary: "#ff7777",
+    colorMix: 0.37,
+    colorSaturation: 1.0,
+    cursorSteer: 3,
+    cursorParallax: 1.46,
+    breath: 0,
+    rotationSpeed: 0,
+    transitionSpinTarget: 5,
   };
 
 export class ParticleSystem {

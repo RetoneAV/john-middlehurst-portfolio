@@ -110,14 +110,14 @@ export const DEFAULT_FLUID_PARAMS = {
   aMax: 24,
   vMaxScale: 1,
   // Particle render
-  pointSize: 10,
+  pointSize: 7.7,
   rotationSpeed: 0.08,
   transitionSpinTarget: 2,
-  particleScale: 1,
+  particleScale: 0.98,
   particlePrimary: { r: 0.95, g: 0.5, b: 0.2 },
   particleSecondary: { r: 0.4, g: 0.3, b: 0.95 },
   particleColorMix: 0,
-  particleSaturation: 1,
+  particleSaturation: 2,
   // Saturation oscillator: when enabled, the saturation pushed to the
   // particle uniforms cycles smoothly between min and max with a sine
   // envelope. Independent of the static `particleSaturation` slider above
@@ -128,8 +128,11 @@ export const DEFAULT_FLUID_PARAMS = {
   saturationOscPeriod: 6.0,
   holdSeconds: 6.5,
   morphSeconds: 4.8,
-  // Shape cycle (clone the defaults so live edits don't mutate the shared array)
-  targets: DEFAULT_TARGET_CONFIGS.map((c) => ({ ...c })),
+  // Shape cycle — sphere + trefoil only (matches production tuning).
+  targets: DEFAULT_TARGET_CONFIGS.map((c, i) => ({
+    ...c,
+    enabled: [true, false, true, false, false][i] ?? c.enabled !== false,
+  })),
   // Overlay
   overlayStyle: "artInk",
   overlayIntensity: OVERLAY_STYLE_DEFAULTS.artInk.intensity,
