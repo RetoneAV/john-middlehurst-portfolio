@@ -90,6 +90,7 @@ const POINT_VERT = /* glsl */ `
     breath: 0,
     rotationSpeed: 0,
     transitionSpinTarget: 5,
+    tunnelSpeed: 12,
   };
 
 export class ParticleSystem {
@@ -220,7 +221,6 @@ export class ParticleSystem {
       this.tunnelScene.add(this.points);
 
       this.tunnelLength = 140;
-      this.tunnelSpeed  = 12;
       this.tunnelZPhase = 0;
     }
 
@@ -343,7 +343,7 @@ export class ParticleSystem {
       this.tunnelOffset.y += (targetOffY - this.tunnelOffset.y) * 0.08;
 
       const TUNNEL_LEN = this.tunnelLength;
-      this.tunnelZPhase = (this.tunnelZPhase + dt * this.tunnelSpeed) % TUNNEL_LEN;
+      this.tunnelZPhase = (this.tunnelZPhase + dt * params.tunnelSpeed) % TUNNEL_LEN;
 
       // Spin: lerp between the resting rotation speed and the transition
       // peak based on the 0..1..0 envelope coming from SnapScroll. When the

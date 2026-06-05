@@ -27,6 +27,16 @@ import {
 const fluidCanvas = document.getElementById("fluid-canvas");
 const bgCanvas = document.getElementById("bg-canvas");
 
+/** Keep CSS viewport units aligned with the visible area (mobile URL bar, etc.). */
+function updateViewportMetrics() {
+  const vv = window.visualViewport;
+  const h = vv?.height ?? window.innerHeight;
+  const w = vv?.width ?? window.innerWidth;
+  const root = document.documentElement;
+  root.style.setProperty("--app-height", `${Math.round(h)}px`);
+  root.style.setProperty("--app-width", `${Math.round(w)}px`);
+}
+
 if (!bgCanvas) {
   throw new Error("Background canvas (#bg-canvas) not found.");
 }
@@ -35,6 +45,7 @@ if (!bgCanvas) {
 const savedPrefs = loadPreferences() || {};
 
 // Apply layout params before first paint so the page lays out correctly on load
+updateViewportMetrics();
 const layoutParams = { ...DEFAULT_LAYOUT_PARAMS, ...(savedPrefs.layout || {}) };
 applyLayoutParams(layoutParams);
 
@@ -55,6 +66,19 @@ const particles = new ParticleSystem(bgCanvas, {
   count: prefersReducedMotion ? 0 : 9000,
   params: savedPrefs.tunnel,
 });
+
+function bindViewportMetrics() {
+  const onViewportChange = () => {
+    updateViewportMetrics();
+    particles.resize();
+    fluid?.ready && fluid._resize?.();
+  };
+  updateViewportMetrics();
+  window.addEventListener("resize", onViewportChange, { passive: true });
+  window.visualViewport?.addEventListener("resize", onViewportChange, { passive: true });
+  window.visualViewport?.addEventListener("scroll", onViewportChange, { passive: true });
+}
+bindViewportMetrics();
 
 // Portfolio carousel (scene 2). Lives in normal DOM, no canvas needed; uses
 // CSS 3D transforms driven by a single --carousel-angle on the track element.

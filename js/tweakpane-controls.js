@@ -1,7 +1,6 @@
 /* ============================================================
    Tweakpane GUI for the fluid scene.
-   Hidden by default. Toggle with the backtick (`) key or the
-   gear button in the page header. All bindings persist to
+   Hidden by default. Toggle with the ] key. All bindings persist to
    localStorage on change (debounced) and are restored on load.
    ============================================================ */
 import { Pane } from "tweakpane";
@@ -232,6 +231,9 @@ export function mountTweakpane(
     tunnel.addBinding(tp, "rotationSpeed", {
       label: "spin", min: -5, max: 5, step: 0.01,
     });
+    tunnel.addBinding(tp, "tunnelSpeed", {
+      label: "forward speed", min: 0, max: 40, step: 0.1,
+    });
     tunnel.addBinding(tp, "transitionSpinTarget", {
       label: "transition spin", min: -5, max: 5, step: 0.01,
     });
@@ -386,16 +388,11 @@ export function mountTweakpane(
   }
   syncVisibility();
 
-  // Toggle key: backtick. Also wire a visible settings button if present.
+  // Toggle key: ] (settings gear button stays hidden in the header).
   let visible = false;
-  const externalToggle = document.querySelector("[data-settings-toggle]");
   const setVisible = (v) => {
     visible = v;
     container.classList.toggle("is-open", visible);
-    if (externalToggle) {
-      externalToggle.classList.toggle("is-active", visible);
-      externalToggle.setAttribute("aria-pressed", visible ? "true" : "false");
-    }
   };
   setVisible(false);
 
@@ -403,18 +400,12 @@ export function mountTweakpane(
     // Only toggle when not typing in an input
     const t = e.target;
     if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA")) return;
-    if (e.key === "`" || e.key === "~") {
+    if (e.key === "]") {
       setVisible(!visible);
       e.preventDefault();
     }
   };
   window.addEventListener("keydown", onKey);
-
-  const onToggleClick = () => setVisible(!visible);
-  if (externalToggle) {
-    externalToggle.hidden = false;
-    externalToggle.addEventListener("click", onToggleClick);
-  }
 
   return {
     pane,
@@ -424,12 +415,6 @@ export function mountTweakpane(
     toggle: () => setVisible(!visible),
     dispose() {
       window.removeEventListener("keydown", onKey);
-      if (externalToggle) {
-        externalToggle.removeEventListener("click", onToggleClick);
-        externalToggle.hidden = true;
-        externalToggle.classList.remove("is-active");
-        externalToggle.setAttribute("aria-pressed", "false");
-      }
       pane.dispose();
       container.remove();
     },

@@ -58,10 +58,10 @@ export const DEFAULT_LAYOUT_PARAMS = {
 export function applyLayoutParams(params) {
   const root = document.documentElement;
   if (typeof params.textPadTopVh === "number") {
-    root.style.setProperty("--text-pad-top", `${params.textPadTopVh}vh`);
+    root.style.setProperty("--text-pad-top-user", `${params.textPadTopVh}vh`);
   }
   if (typeof params.textPadBottomVh === "number") {
-    root.style.setProperty("--text-pad-bottom", `${params.textPadBottomVh}vh`);
+    root.style.setProperty("--text-pad-bottom-user", `${params.textPadBottomVh}vh`);
   }
   if (typeof params.textMaxRem === "number") {
     root.style.setProperty("--text-max", `${params.textMaxRem}rem`);
