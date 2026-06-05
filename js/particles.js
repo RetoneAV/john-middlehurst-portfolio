@@ -79,8 +79,8 @@ const POINT_VERT = /* glsl */ `
   // Tunable defaults for the user-facing tunnel knobs. Cloned into instance
   // params so callers can mutate freely.
   export const DEFAULT_TUNNEL_PARAMS = {
-    particleSize: 4,
-    brightness: 1.01,
+    particleSize: 1.73,
+    brightness: 1.63,
     colorPrimary: "#55b8f7",
     colorSecondary: "#ff7777",
     colorMix: 0.37,
@@ -90,7 +90,7 @@ const POINT_VERT = /* glsl */ `
     breath: 0,
     rotationSpeed: 0,
     transitionSpinTarget: 5,
-    tunnelSpeed: 12,
+    tunnelSpeed: 1.3,
   };
 
 export class ParticleSystem {
