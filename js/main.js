@@ -21,8 +21,8 @@ import {
   mergeTextContent,
   mergePortfolioItems,
   mergeClientItems,
-  DEFAULT_LAYOUT_PARAMS,
 } from "./preferences.js";
+import { SITE_DEFAULTS } from "../config/site-defaults.js";
 
 const fluidCanvas = document.getElementById("fluid-canvas");
 const bgCanvas = document.getElementById("bg-canvas");
@@ -41,23 +41,33 @@ if (!bgCanvas) {
   throw new Error("Background canvas (#bg-canvas) not found.");
 }
 
-// Load persisted preferences from localStorage (or null if nothing saved)
-const savedPrefs = loadPreferences() || {};
+// Load persisted preferences from localStorage, falling back to the committed
+// production snapshot in config/site-defaults.js for any missing sections.
+const storedPrefs = loadPreferences();
+const savedPrefs = {
+  fluid:     { ...SITE_DEFAULTS.fluid,     ...(storedPrefs?.fluid     || {}) },
+  layout:    { ...SITE_DEFAULTS.layout,    ...(storedPrefs?.layout    || {}) },
+  tunnel:    { ...SITE_DEFAULTS.tunnel,    ...(storedPrefs?.tunnel    || {}) },
+  text:      mergeTextContent(storedPrefs?.text),
+  portfolio: mergePortfolioItems(storedPrefs?.portfolio),
+  clients:   mergeClientItems(storedPrefs?.clients),
+  snap:      { ...SITE_DEFAULTS.snap,      ...(storedPrefs?.snap      || {}) },
+};
 
 // Apply layout params before first paint so the page lays out correctly on load
 updateViewportMetrics();
-const layoutParams = { ...DEFAULT_LAYOUT_PARAMS, ...(savedPrefs.layout || {}) };
+const layoutParams = { ...savedPrefs.layout };
 applyLayoutParams(layoutParams);
 
 // Build the text-content object (merged with defaults) and write it into the
 // DOM before any GSAP animations run.
-const textContent = mergeTextContent(savedPrefs.text);
+const textContent = savedPrefs.text;
 applyTextContent(textContent);
 
 // Portfolio items (merged with defaults) — used by the carousel and shown in
 // Tweakpane so each card's text can be edited live.
-const portfolioItems = mergePortfolioItems(savedPrefs.portfolio);
-const clientItems = mergeClientItems(savedPrefs.clients);
+const portfolioItems = savedPrefs.portfolio;
+const clientItems = savedPrefs.clients;
 
 const prefersReducedMotion =
   window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
