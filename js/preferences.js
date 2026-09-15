@@ -219,8 +219,24 @@ const PORTFOLIO_TAGLINES = [
   "Real-Time Facial Analysis",
 ];
 
-/** Relative paths under assets/portfolio/ */
-const PORTFOLIO_IMAGE_FILES = [
+/** Tile filename extensions under assets/portfolio/<slug>/tile.<ext> */
+const PORTFOLIO_TILE_EXTS = [
+  "jpeg",
+  "png",
+  "png",
+  "jpeg",
+  "png",
+  "jpg",
+  "jpg",
+  "png",
+  "png",
+  "png",
+  "png",
+  "png",
+];
+
+/** Pre-restructure tile filenames; used to migrate saved Tweakpane paths. */
+const LEGACY_PORTFOLIO_IMAGE_FILES = [
   "01-guinness.jpeg",
   "02-cdw.png",
   "03-adizero.png",
@@ -235,12 +251,28 @@ const PORTFOLIO_IMAGE_FILES = [
   "12-gestureControl.png",
 ];
 
+function portfolioTilePath(index) {
+  const slug = PORTFOLIO_SLUGS[index] || `project-${String(index + 1).padStart(2, "0")}`;
+  const ext = PORTFOLIO_TILE_EXTS[index] || "jpg";
+  return `assets/portfolio/${slug}/tile.${ext}`;
+}
+
+function isLegacyPortfolioImage(path, index) {
+  const legacy = LEGACY_PORTFOLIO_IMAGE_FILES[index];
+  if (!legacy) return false;
+  const normalized = String(path || "").replace(/\\/g, "/");
+  return (
+    normalized === `assets/portfolio/${legacy}` ||
+    normalized.endsWith(`/${legacy}`)
+  );
+}
+
 export const DEFAULT_PORTFOLIO_ITEMS = Array.from(
   { length: PORTFOLIO_ITEM_COUNT },
   (_, i) => ({
     title: PORTFOLIO_TITLES[i] || `Project ${String(i + 1).padStart(2, "0")}`,
     tagline: PORTFOLIO_TAGLINES[i] || "Portfolio piece",
-    image: `assets/portfolio/${PORTFOLIO_IMAGE_FILES[i] || `${String(i + 1).padStart(2, "0")}.jpg`}`,
+    image: portfolioTilePath(i),
     slug: PORTFOLIO_SLUGS[i] || `project-${String(i + 1).padStart(2, "0")}`,
   })
 );
@@ -254,7 +286,10 @@ export function mergePortfolioItems(saved) {
       if (s && typeof s === "object") {
         if (typeof s.title === "string") out[i].title = s.title;
         if (typeof s.tagline === "string") out[i].tagline = s.tagline;
-        if (typeof s.image === "string") out[i].image = s.image.replace(/\\/g, "/");
+        if (typeof s.image === "string") {
+          const image = s.image.replace(/\\/g, "/");
+          if (!isLegacyPortfolioImage(image, i)) out[i].image = image;
+        }
         if (typeof s.slug === "string" && s.slug.trim()) out[i].slug = s.slug.trim();
       }
     });

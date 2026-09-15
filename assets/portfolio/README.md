@@ -1,22 +1,29 @@
-# Portfolio carousel images
+# Portfolio assets
 
-Save your 12 project images in this folder using these exact filenames (in the order you attached them in chat):
+Each project lives in a folder named after its slug:
 
-| File | Default title |
-|------|---------------|
-| `01-volumetric-point-cloud.jpg` | Volumetric Point Cloud |
-| `02-immersive-led.jpg` | Immersive LED Environment |
-| `03-yeast-cell.jpg` | Yeast Cell Experience |
-| `04-belstaff-projection.jpg` | Belstaff Projection |
-| `05-generative-tree.jpg` | Generative Tree Tunnel |
-| `06-trade-show.jpg` | Trade Show Display |
-| `07-light-wall.jpg` | Audio-Reactive Light Wall |
-| `08-table-projection.jpg` | Interactive Table Projection |
-| `09-gesture-particles.jpg` | Gesture-Controlled Particles |
-| `10-adizero-run.jpg` | Adizero Immersive Run |
-| `11-kaleidoscope.jpg` | Kaleidoscope Installation |
-| `12-living-grid.jpg` | Living Grid |
+```
+assets/portfolio/<slug>/
+├── tile.<ext>     Grid / hero still
+├── videos/        Project video files
+└── images/        Extra stills for the project page gallery
+```
 
-`.png` and `.webp` also work — update the path in Tweakpane (**Portfolio items → image path**) or in `js/preferences.js`.
+| Folder | Default title |
+|--------|---------------|
+| `guinness-storehouse/` | Guinness Storehouse |
+| `feel-the-pull/` | Feel The Pull |
+| `adidas-london-marathon/` | Adidas London Marathon |
+| `outernet-london/` | Outernet London |
+| `immersive-dining/` | Immersive Dining |
+| `control-the-swarm/` | Control The Swarm |
+| `holodeck-3d-room/` | Holodeck 3D Room |
+| `belstaff/` | Belstaff |
+| `interactive-photobooth/` | Interactive Photobooth |
+| `realtime-interactive-ai-video/` | Real-Time Interactive AI Video |
+| `360-projections/` | 360 Projections |
+| `gesture-control/` | Gesture Control |
 
-Recommended size: **1200×750** or larger, **16:10** aspect ratio. Images are cropped with `object-fit: cover` inside each carousel tile.
+Keep the tile filename as `tile` plus the original extension (`.jpeg`, `.png`, or `.jpg`). Drop extra stills into `images/` and clips into `videos/`, then point the matching project page at those files.
+
+Recommended tile size: **1200×750** or larger, **16:10** aspect ratio. Tiles are cropped with `object-fit: cover`.
