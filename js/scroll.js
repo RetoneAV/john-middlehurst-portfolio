@@ -30,6 +30,8 @@ export class SnapScroll {
       this.current = 0;
       this.transitioning = false;
       this.lockUntil = 0;
+      this._activeTl = null;
+      this._pendingTo = null;
 
       // User-tunable scroll behaviour. `opts.params` is the persisted
       // snapshot (if any); `opts.wheelThreshold` is a direct override.
@@ -297,7 +299,7 @@ export class SnapScroll {
       this.dots.forEach((dot) => {
         dot.addEventListener("click", () => {
           const idx = parseInt(dot.dataset.section, 10);
-          this.goTo(idx);
+          this.goTo(idx, { fromNav: true });
         });
       });
     }
@@ -359,15 +361,55 @@ export class SnapScroll {
       this.goTo(next);
     }
 
-    goTo(idx) {
-      if (idx === this.current || this._inputLocked()) return;
+    goTo(idx, opts = {}) {
       if (idx < 0 || idx >= this.sections.length) return;
+      const visual = this.transitioning ? (this._pendingTo ?? this.current) : this.current;
+      if (idx === visual) return;
+      if (!opts.fromNav && this._inputLocked()) return;
       this._resetEdgeBuffer();
+      if (this.transitioning) this._interruptTransition();
       this._transition(this.current, idx);
+    }
+
+    _interruptTransition() {
+      this._activeTl?.kill();
+      this._activeTl = null;
+      if (typeof this._pendingTo === "number") {
+        this.current = this._pendingTo;
+      }
+      this._pendingTo = null;
+      this.transitioning = false;
+      this.lockUntil = 0;
+      if (this.particles && typeof this.particles.setSceneTransitioning === "function") {
+        this.particles.setSceneTransitioning(false);
+      }
+      if (this.particles && typeof this.particles.setTransitionSpinProgress === "function") {
+        this.particles.setTransitionSpinProgress(0);
+      }
+      this.sections.forEach((sec, i) => {
+        const stage = sec.querySelector(".text-stage");
+        const axis = sec.dataset.axis || "x";
+        if (i === this.current) {
+          sec.classList.add("is-active");
+          gsap.set(sec, { autoAlpha: 1 });
+          gsap.set(stage, { x: 0, y: 0, opacity: 1 });
+          this._setLineState(sec, 1);
+        } else {
+          sec.classList.remove("is-active");
+          gsap.set(sec, { autoAlpha: 0 });
+          if (axis === "y") {
+            gsap.set(stage, { x: 0, y: "100vh", opacity: 0 });
+          } else {
+            gsap.set(stage, { x: "100vw", y: 0, opacity: 0 });
+          }
+          this._setLineState(sec, 0);
+        }
+      });
     }
 
     _transition(fromIdx, toIdx) {
       this.transitioning = true;
+      this._pendingTo = toIdx;
       const dir = toIdx > fromIdx ? +1 : -1;
       const from = this.sections[fromIdx];
       const to   = this.sections[toIdx];
@@ -416,6 +458,9 @@ export class SnapScroll {
       // Particle transition target (0 cloud, 1 tunnel)
       const particleFrom = this.modeForSection[fromIdx];
       const particleTo = this.modeForSection[toIdx];
+      if (this.particles && typeof this.particles.setSceneTransitioning === "function") {
+        this.particles.setSceneTransitioning(true);
+      }
       if (this.particles && typeof this.particles.setParticleScene === "function") {
         this.particles.setParticleScene(toIdx);
       }
@@ -432,10 +477,16 @@ export class SnapScroll {
           from.classList.remove("is-active");
           gsap.set(from, { autoAlpha: 0 });
           this.current = toIdx;
+          this._pendingTo = null;
+          this._activeTl = null;
           this.transitioning = false;
           this.lockUntil = performance.now() + COOLDOWN_AFTER;
+          if (this.particles && typeof this.particles.setSceneTransitioning === "function") {
+            this.particles.setSceneTransitioning(false);
+          }
         },
       });
+      this._activeTl = tl;
 
       // 1. Outgoing text exits along its own axis.
       if (fromAxis === "y") {

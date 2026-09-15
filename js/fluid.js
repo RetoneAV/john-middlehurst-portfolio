@@ -20,8 +20,10 @@
 import {
   ACESFilmicToneMapping,
   Color,
+  Euler,
   Matrix3,
   PerspectiveCamera,
+  Quaternion,
   Scene,
   SRGBColorSpace,
   Timer,
@@ -73,6 +75,23 @@ export const SCENE_PARTICLE_MODES = {
       speed: 2.7,
       secondary: 0.38,
     },
+  },
+  1: {
+    kind: "grid",
+    spin: false,
+    // Settled Y turn after the intro → About transition spin.
+    rotation: { x: 0, y: -1.26, z: 0 },
+    ripple: {
+      axis: "y",
+      amplitude: 0.07,
+      frequency: 2.6,
+      speed: 0.85,
+      secondary: 0.16,
+    },
+  },
+  2: {
+    kind: "grid",
+    spin: false,
   },
   3: {
     kind: "sphere",
@@ -211,6 +230,7 @@ export class FluidScene {
     this._postRebuildSubscribers = new Set();
     this._sceneIndex = 0;
     this._sceneMode = null;
+    this._sceneTransitioning = false;
   }
 
   async init() {
@@ -305,6 +325,8 @@ export class FluidScene {
     this._cameraUp = new Vector3();
     this._modelRotation = new Matrix3();
     this._spinAngle = 0;
+    this._targetQ = new Quaternion();
+    this._eulerScratch = new Euler();
     this._fluidAccumulator = 0;
     this._morphTime = 0;
     this._transitionSpinT = 0;
@@ -498,23 +520,7 @@ export class FluidScene {
     const mode = this._sceneMode;
     const lockShape = Boolean(mode?.ripple || mode?.kind);
     if (p.morphEnabled && !lockShape) this._morphTime += frameDt;
-    // Spin: lerps from base (rotationSpeed) toward transitionSpinTarget while
-    // a scene transition is in flight. SnapScroll drives `_transitionSpinT`
-    // from 0 → 1 (during slide-out) → 0 (during slide-in). Scene modes can
-    // lock the mesh facing the camera (identity rotation).
-    if (mode && mode.spin === false) {
-      this._spinAngle = 0;
-      this.particles.mesh.rotation.set(0, 0, 0);
-    } else {
-      const t = this._transitionSpinT;
-      const baseSpin = mode?.rotationSpeed ?? p.rotationSpeed;
-      const effectiveSpin =
-        baseSpin + (p.transitionSpinTarget - baseSpin) * t;
-      this._spinAngle += effectiveSpin * frameDt;
-      this.particles.mesh.rotation.set(0, this._spinAngle, 0);
-    }
-    this.particles.mesh.updateMatrixWorld(true);
-    this._modelRotation.setFromMatrix4(this.particles.mesh.matrixWorld);
+    this._updateMeshRotation(mode, frameDt, p);
 
     // Fluid substeps
     this._fluidAccumulator += frameDt;
@@ -542,7 +548,7 @@ export class FluidScene {
           cameraUp: this._cameraUp,
           modelRotation: this._modelRotation,
           pointSize: p.pointSize,
-          spring: mode?.ripple ? Math.max(p.spring, 9) : p.spring,
+          spring: mode?.ripple ? Math.max(p.spring, 9) : mode?.kind ? Math.max(p.spring, 7) : p.spring,
           zeta: mode?.ripple ? Math.max(p.zeta, 1.05) : p.zeta,
           dragLin: p.dragLin,
           dragQuad: p.dragQuad,
@@ -588,6 +594,58 @@ export class FluidScene {
     this._transitionSpinT = Math.max(0, Math.min(1, t));
   }
 
+  setSceneTransitioning(active) {
+    this._sceneTransitioning = Boolean(active);
+  }
+
+  _lockedPose(mode) {
+    return {
+      x: mode?.rotation?.x ?? 0,
+      y: mode?.rotation?.y ?? 0,
+      z: mode?.rotation?.z ?? 0,
+    };
+  }
+
+  _spinMesh(mode, frameDt, p) {
+    const mesh = this.particles.mesh;
+    const t = this._transitionSpinT;
+    const baseSpin = mode?.rotationSpeed ?? p.rotationSpeed;
+    const effectiveSpin =
+      baseSpin + (p.transitionSpinTarget - baseSpin) * t;
+    this._spinAngle += effectiveSpin * frameDt;
+    mesh.rotation.set(0, this._spinAngle, 0);
+    mesh.quaternion.setFromEuler(mesh.rotation);
+  }
+
+  /**
+   * Locked scenes always slerp toward their rest pose from whatever
+   * orientation we arrived with (any previous scene, including a spinning
+   * sphere). Free-spin scenes keep accumulating Y rotation.
+   */
+  _updateMeshRotation(mode, frameDt, p) {
+    const mesh = this.particles.mesh;
+    const inFlight =
+      this._sceneTransitioning || this._transitionSpinT > 0.001;
+
+    if (mode && mode.spin === false) {
+      const pose = this._lockedPose(mode);
+      this._eulerScratch.set(pose.x, pose.y, pose.z, "XYZ");
+      this._targetQ.setFromEuler(this._eulerScratch);
+      const rate = inFlight ? 3.8 : 12;
+      mesh.quaternion.slerp(this._targetQ, 1 - Math.exp(-frameDt * rate));
+      if (!inFlight && mesh.quaternion.angleTo(this._targetQ) < 0.01) {
+        mesh.quaternion.copy(this._targetQ);
+      }
+      mesh.rotation.setFromQuaternion(mesh.quaternion, "XYZ");
+      this._spinAngle = mesh.rotation.y;
+    } else {
+      this._spinMesh(mode, frameDt, p);
+    }
+
+    mesh.updateMatrixWorld(true);
+    this._modelRotation.setFromMatrix4(mesh.matrixWorld);
+  }
+
   /**
    * Switch the particle field to the mode configured for a snap-scroll
    * section. Unknown indices fall back to the default morph cycle + spin.
@@ -595,11 +653,6 @@ export class FluidScene {
   setSceneMode(index) {
     this._sceneIndex = index;
     this._sceneMode = SCENE_PARTICLE_MODES[index] || null;
-    if (!this.ready || !this.particles?.mesh) return;
-    if (this._sceneMode && this._sceneMode.spin === false) {
-      this._spinAngle = 0;
-      this.particles.mesh.rotation.set(0, 0, 0);
-    }
   }
 
   /** For overlay style changes from Tweakpane: also apply that style's defaults. */

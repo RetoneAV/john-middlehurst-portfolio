@@ -243,7 +243,8 @@ export class MorphFlowParticles {
   }
   /**
    * Keep particles on a rest shape (default: grid) and offset Z as
-   * concentric waves so the field pulses toward / away from the camera.
+   * traveling waves. `ripple.axis === 'y'` sends crests down the grid;
+   * otherwise the waves are concentric from the centre.
    */
   updateRippleDestination(timeSeconds, ripple = {}) {
     const kind = ripple.kind || 'grid'
@@ -255,14 +256,23 @@ export class MorphFlowParticles {
     const freq = ripple.frequency ?? 4.2
     const speed = ripple.speed ?? 2.8
     const secondary = ripple.secondary ?? 0.35
+    const alongY = ripple.axis === 'y'
     const data = this.destinationData
     for (let i = 0; i < data.length; i += 4) {
       const x = src[i]
       const y = src[i + 1]
-      const r = Math.hypot(x, y)
-      const wave =
-        Math.sin(r * freq - timeSeconds * speed) +
-        secondary * Math.sin(r * freq * 1.73 + timeSeconds * speed * 0.72)
+      let wave
+      if (alongY) {
+        // Travels toward -Y so crests run down the screen.
+        wave =
+          Math.sin(y * freq + timeSeconds * speed) +
+          secondary * Math.sin(y * freq * 1.55 + timeSeconds * speed * 0.62)
+      } else {
+        const r = Math.hypot(x, y)
+        wave =
+          Math.sin(r * freq - timeSeconds * speed) +
+          secondary * Math.sin(r * freq * 1.73 + timeSeconds * speed * 0.72)
+      }
       data[i] = x
       data[i + 1] = y
       data[i + 2] = amp * wave

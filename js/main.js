@@ -184,6 +184,11 @@ const backgroundController = {
       fluid.setSceneMode(index);
     }
   },
+  setSceneTransitioning(active) {
+    if (fluid && typeof fluid.setSceneTransitioning === "function") {
+      fluid.setSceneTransitioning(active);
+    }
+  },
 };
 
 const HASH_SECTIONS = {
