@@ -13,6 +13,7 @@ export const DEFAULT_TARGET_CONFIGS = [
   { kind: 'trefoil', label: 'Trefoil', enabled: true, text: '',     fontSize: TEXT_SINGLE_FONT_SIZE },
   { kind: 'text',    label: 'Text 1',  enabled: true, text: 'TSL',     fontSize: TEXT_SINGLE_FONT_SIZE },
   { kind: 'text',    label: 'Text 2',  enabled: true, text: 'GL|SL',   fontSize: TEXT_STACKED_FONT_SIZE },
+  { kind: 'grid',    label: 'Grid',    enabled: true, text: '',     fontSize: TEXT_SINGLE_FONT_SIZE },
 ]
 function parseTextLines(text) {
   if (Array.isArray(text)) return text.filter((s) => typeof s === 'string' && s.length > 0)
@@ -168,14 +169,24 @@ export class MorphFlowParticles {
         return this.createTetraTarget()
       case 'trefoil':
         return this.createTrefoilTarget()
+      case 'grid':
+        return this.createGridTarget()
       case 'text':
         return this.createTextTarget(config.text, config.fontSize)
       default:
         return this.createSphereTarget()
     }
   }
-  step(params, timeSeconds) {
-    this.updateDestination(timeSeconds)
+  _targetByKind(kind) {
+    const i = this.targetConfigs.findIndex((c) => c.kind === kind)
+    return i >= 0 ? this.targets[i] : null
+  }
+  step(params, timeSeconds, options = {}) {
+    if (options.ripple) {
+      this.updateRippleDestination(timeSeconds, options.ripple)
+    } else {
+      this.updateDestination(timeSeconds)
+    }
     this.particles.step(params)
   }
   reset() {
@@ -210,6 +221,35 @@ export class MorphFlowParticles {
       data[i + 1] = lerp(from[i + 1], to[i + 1], eased)
       data[i + 2] = lerp(from[i + 2], to[i + 2], eased)
       data[i + 3] = lerp(from[i + 3], to[i + 3], eased)
+    }
+    this.particles.setDestinationData(data)
+  }
+  /**
+   * Keep particles on a rest shape (default: grid) and offset Z as
+   * concentric waves so the field pulses toward / away from the camera.
+   */
+  updateRippleDestination(timeSeconds, ripple = {}) {
+    const kind = ripple.kind || 'grid'
+    const src =
+      this._targetByKind(kind) ||
+      (kind === 'grid' ? this.createGridTarget() : this.targets[0])
+    if (!src) return
+    const amp = ripple.amplitude ?? 0.28
+    const freq = ripple.frequency ?? 4.2
+    const speed = ripple.speed ?? 2.8
+    const secondary = ripple.secondary ?? 0.35
+    const data = this.destinationData
+    for (let i = 0; i < data.length; i += 4) {
+      const x = src[i]
+      const y = src[i + 1]
+      const r = Math.hypot(x, y)
+      const wave =
+        Math.sin(r * freq - timeSeconds * speed) +
+        secondary * Math.sin(r * freq * 1.73 + timeSeconds * speed * 0.72)
+      data[i] = x
+      data[i + 1] = y
+      data[i + 2] = amp * wave
+      data[i + 3] = src[i + 3]
     }
     this.particles.setDestinationData(data)
   }
@@ -276,6 +316,24 @@ export class MorphFlowParticles {
       data[offset + 1] = rotated[1]
       data[offset + 2] = z * 0.62 * scale + (random() - 0.5) * 0.3 * scale
       data[offset + 3] = 0.9
+    }
+    return data
+  }
+  createGridTarget() {
+    const data = new Float32Array(this.count * 4)
+    const cols = Math.max(1, this.size)
+    const rows = Math.max(1, Math.ceil(this.count / cols))
+    const extent = 1.7
+    for (let i = 0; i < this.count; i += 1) {
+      const col = i % cols
+      const row = Math.floor(i / cols)
+      const u = cols === 1 ? 0.5 : col / (cols - 1)
+      const v = rows === 1 ? 0.5 : row / (rows - 1)
+      const offset = i * 4
+      data[offset] = (u - 0.5) * 2 * extent
+      data[offset + 1] = (0.5 - v) * 2 * extent
+      data[offset + 2] = 0
+      data[offset + 3] = 0.92
     }
     return data
   }

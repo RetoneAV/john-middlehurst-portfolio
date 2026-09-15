@@ -63,12 +63,9 @@ export class SnapScroll {
       this.edgeBufferSign = 0;
       this.edgeResetTimer = null;
 
-      // Each section's transition target for particles: 0 = cloud, 1 = tunnel.
-      // Sections beyond the second keep tunnel mode under the bg fade-out.
-      this.modeForSection = this.sections.map((sec) => {
-        if (sec.classList.contains("section--hero")) return 0;
-        return 1;
-      });
+      // Keep the hero fluid/vortex behind every section instead of
+      // morphing to the tunnel or blanking the canvases.
+      this.modeForSection = this.sections.map(() => 0);
 
       this._prepInitial();
       this._bindEvents();
@@ -106,6 +103,9 @@ export class SnapScroll {
         this.particles.applySectionState(startEl, this.modeForSection[start]);
       } else if (this.particles && typeof this.particles.setTransition === "function") {
         this.particles.setTransition(this.modeForSection[start]);
+      }
+      if (this.particles && typeof this.particles.setParticleScene === "function") {
+        this.particles.setParticleScene(start);
       }
 
       const startCarousel = this._carouselForSection(startEl);
@@ -416,6 +416,9 @@ export class SnapScroll {
       // Particle transition target (0 cloud, 1 tunnel)
       const particleFrom = this.modeForSection[fromIdx];
       const particleTo = this.modeForSection[toIdx];
+      if (this.particles && typeof this.particles.setParticleScene === "function") {
+        this.particles.setParticleScene(toIdx);
+      }
 
       // Background canvas opacity targets — sections marked data-bg="blank"
       // hide the bg/fluid canvases entirely (e.g. portfolio scene).

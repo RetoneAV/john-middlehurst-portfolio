@@ -135,6 +135,7 @@ let fluid = null;
 // particle system and (if present) to the fluid canvas's opacity.
 const backgroundController = {
   _bgOpacity: 1,
+  _particleScene: 0,
 
   get transitionT() {
     return particles.transitionT;
@@ -166,18 +167,21 @@ const backgroundController = {
   },
   _syncFluidCanvasOpacity() {
     if (!fluid) return;
-    const heroAlpha = 1 - Math.max(0, Math.min(1, this.transitionT));
     const target = fluid.opacityTarget ?? 1;
-    fluid.setOpacity(heroAlpha * target * this._bgOpacity);
+    fluid.setOpacity(target * this._bgOpacity);
   },
-  /** Apply particle mode + canvas visibility for a section index. */
-  applySectionState(sectionEl, particleT) {
-    const blank = sectionEl?.dataset.bg === "blank";
-    const t = blank ? 0 : particleT;
-    this.setBgOpacity(blank ? 0 : 1);
-    this.setTransition(t);
+  /** Keep the hero fluid visible for every section. */
+  applySectionState(_sectionEl, _particleT) {
+    this.setBgOpacity(1);
+    this.setTransition(0);
     if (typeof this.setTransitionSpinProgress === "function") {
       this.setTransitionSpinProgress(0);
+    }
+  },
+  setParticleScene(index) {
+    this._particleScene = index;
+    if (fluid && typeof fluid.setSceneMode === "function") {
+      fluid.setSceneMode(index);
     }
   },
 };
@@ -225,24 +229,18 @@ if (webgpuSupported) {
   fluid = new FluidScene(fluidCanvas, { params: savedPrefs.fluid });
   particles.heroMode = "fluid";
   fluid.setOpacity(0);
-  fluid.opacityTarget = 0;
+  fluid.opacityTarget = 1;
 
   fluid
     .init()
     .then(() => {
-      const onHero = snap.current === 0;
-      if (onHero) {
-        fluid.opacityTarget = 1;
-        gsap.to(fluid, {
-          opacityTarget: 1,
-          duration: 1.0,
-          ease: "power2.out",
-          onUpdate: () => backgroundController._syncFluidCanvasOpacity(),
-        });
-      } else {
-        fluid.opacityTarget = 0;
-        backgroundController._syncFluidCanvasOpacity();
-      }
+      fluid.setSceneMode(backgroundController._particleScene ?? snap.current);
+      gsap.to(fluid, {
+        opacityTarget: 1,
+        duration: 1.0,
+        ease: "power2.out",
+        onUpdate: () => backgroundController._syncFluidCanvasOpacity(),
+      });
 
       try {
         mountTweakpane(

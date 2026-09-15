@@ -59,6 +59,23 @@ const CAMERA_Z = 6.4;
 const FIXED_FLUID_DT = 1 / 60;
 const MAX_FLUID_SUBSTEPS = 4;
 
+/**
+ * Particle field per snap-scroll section index. Unlisted sections keep
+ * the default morph cycle and Y-spin. Scene 0 is the hero / intro.
+ */
+export const SCENE_PARTICLE_MODES = {
+  0: {
+    kind: "grid",
+    spin: false,
+    ripple: {
+      amplitude: 0.32,
+      frequency: 4.4,
+      speed: 2.7,
+      secondary: 0.38,
+    },
+  },
+};
+
 const OVERLAY_STYLE_DEFAULTS = {
   default:      { intensity: 0.85, velocityScale: 1 },
   volumeCursor: { intensity: 0.85, velocityScale: 1 },
@@ -128,10 +145,10 @@ export const DEFAULT_FLUID_PARAMS = {
   saturationOscPeriod: 6.0,
   holdSeconds: 6.5,
   morphSeconds: 4.8,
-  // Shape cycle — sphere + trefoil only (matches production tuning).
+  // Shape cycle — sphere + trefoil + grid (matches production tuning).
   targets: DEFAULT_TARGET_CONFIGS.map((c, i) => ({
     ...c,
-    enabled: [true, false, true, false, false][i] ?? c.enabled !== false,
+    enabled: [true, false, true, false, false, true][i] ?? c.enabled !== false,
   })),
   // Overlay
   overlayStyle: "artInk",
@@ -145,6 +162,12 @@ export const DEFAULT_FLUID_PARAMS = {
   distortionStyle: "simple",
   distortionIntensity: 0.45,
 };
+
+function mergeFluidTargets(saved) {
+  const defaults = DEFAULT_FLUID_PARAMS.targets.map((c) => ({ ...c }));
+  if (!Array.isArray(saved)) return defaults;
+  return defaults.map((d, i) => ({ ...d, ...(saved[i] && typeof saved[i] === "object" ? saved[i] : {}) }));
+}
 
 export class FluidScene {
   static isSupported() {
@@ -176,14 +199,13 @@ export class FluidScene {
         ...DEFAULT_FLUID_PARAMS.particleSecondary,
         ...(opts.params && opts.params.particleSecondary),
       },
-      targets: (opts.params && Array.isArray(opts.params.targets)
-        ? opts.params.targets
-        : DEFAULT_FLUID_PARAMS.targets
-      ).map((c) => ({ ...c })),
+      targets: mergeFluidTargets(opts.params && opts.params.targets),
     };
 
     // Listeners for tweakpane to know when to rebuild the post-process pipeline
     this._postRebuildSubscribers = new Set();
+    this._sceneIndex = 0;
+    this._sceneMode = null;
   }
 
   async init() {
@@ -286,6 +308,7 @@ export class FluidScene {
     window.addEventListener("resize", this._onResize);
 
     this.ready = true;
+    this.setSceneMode(this._sceneIndex);
   }
 
   _onResize = () => this._resize();
@@ -466,15 +489,22 @@ export class FluidScene {
     this._syncParamUniforms();
     this._layoutParticles();
 
-    if (p.morphEnabled) this._morphTime += frameDt;
+    const mode = this._sceneMode;
+    if (p.morphEnabled && !mode?.ripple) this._morphTime += frameDt;
     // Spin: lerps from base (rotationSpeed) toward transitionSpinTarget while
     // a scene transition is in flight. SnapScroll drives `_transitionSpinT`
-    // from 0 → 1 (during slide-out) → 0 (during slide-in).
-    const t = this._transitionSpinT;
-    const effectiveSpin =
-      p.rotationSpeed + (p.transitionSpinTarget - p.rotationSpeed) * t;
-    this._spinAngle += effectiveSpin * frameDt;
-    this.particles.mesh.rotation.y = this._spinAngle;
+    // from 0 → 1 (during slide-out) → 0 (during slide-in). Scene modes can
+    // lock the mesh facing the camera (identity rotation).
+    if (mode && mode.spin === false) {
+      this._spinAngle = 0;
+      this.particles.mesh.rotation.set(0, 0, 0);
+    } else {
+      const t = this._transitionSpinT;
+      const effectiveSpin =
+        p.rotationSpeed + (p.transitionSpinTarget - p.rotationSpeed) * t;
+      this._spinAngle += effectiveSpin * frameDt;
+      this.particles.mesh.rotation.set(0, this._spinAngle, 0);
+    }
     this.particles.mesh.updateMatrixWorld(true);
     this._modelRotation.setFromMatrix4(this.particles.mesh.matrixWorld);
 
@@ -504,8 +534,8 @@ export class FluidScene {
           cameraUp: this._cameraUp,
           modelRotation: this._modelRotation,
           pointSize: p.pointSize,
-          spring: p.spring,
-          zeta: p.zeta,
+          spring: mode?.ripple ? Math.max(p.spring, 9) : p.spring,
+          zeta: mode?.ripple ? Math.max(p.zeta, 1.05) : p.zeta,
           dragLin: p.dragLin,
           dragQuad: p.dragQuad,
           aMax: p.aMax,
@@ -519,7 +549,10 @@ export class FluidScene {
           sideVariation: p.sideVariation,
           depthAttenuationScale: p.depthAttenuationScale,
         },
-        this._morphTime
+        mode?.ripple ? elapsed : this._morphTime,
+        mode?.ripple
+          ? { ripple: { ...mode.ripple, kind: mode.kind || "grid" } }
+          : undefined
       );
     }
 
@@ -543,6 +576,20 @@ export class FluidScene {
    */
   setTransitionSpinProgress(t) {
     this._transitionSpinT = Math.max(0, Math.min(1, t));
+  }
+
+  /**
+   * Switch the particle field to the mode configured for a snap-scroll
+   * section. Unknown indices fall back to the default morph cycle + spin.
+   */
+  setSceneMode(index) {
+    this._sceneIndex = index;
+    this._sceneMode = SCENE_PARTICLE_MODES[index] || null;
+    if (!this.ready || !this.particles?.mesh) return;
+    if (this._sceneMode && this._sceneMode.spin === false) {
+      this._spinAngle = 0;
+      this.particles.mesh.rotation.set(0, 0, 0);
+    }
   }
 
   /** For overlay style changes from Tweakpane: also apply that style's defaults. */
