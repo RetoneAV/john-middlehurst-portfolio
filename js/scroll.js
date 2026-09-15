@@ -47,6 +47,13 @@ export class SnapScroll {
       // by Tweakpane). Read at animation-build time, so changes affect the
       // next intro / transition.
       this.layoutParams = opts.layoutParams || {};
+      this.initialSection = Math.max(
+        0,
+        Math.min(
+          this.sections.length - 1,
+          Number.isFinite(opts.initialSection) ? opts.initialSection : 0
+        )
+      );
 
       // Wheel accumulator (resets when direction flips or after a pause)
       this.wheelAccum = 0;
@@ -68,15 +75,17 @@ export class SnapScroll {
     }
 
     _prepInitial() {
-      // Hide every section except the first
+      const start = this.initialSection;
+      this.current = start;
+
       this.sections.forEach((sec, i) => {
         const stage = sec.querySelector(".text-stage");
         const axis = sec.dataset.axis || "x";
-        if (i === 0) {
+        if (i === start) {
           sec.classList.add("is-active");
           gsap.set(sec, { autoAlpha: 1 });
           gsap.set(stage, { x: 0, y: 0, opacity: 1 });
-          this._setLineState(sec, 1); // lines fully revealed
+          this._setLineState(sec, 1);
         } else {
           sec.classList.remove("is-active");
           gsap.set(sec, { autoAlpha: 0 });
@@ -85,16 +94,46 @@ export class SnapScroll {
           } else {
             gsap.set(stage, { x: "100vw", y: 0, opacity: 0 });
           }
-          this._setLineState(sec, 0); // lines hidden below their masks
+          this._setLineState(sec, 0);
         }
       });
 
-      // Park carousel sections off-screen so their entrance has somewhere to come from.
-      if (this.portfolio) this.portfolio.resetForEnter();
-      if (this.clients) this.clients.resetForEnter();
+      this.dots.forEach((d, i) => d.classList.toggle("is-active", i === start));
+      if (start > 0 && this.scrollHint) this.scrollHint.classList.add("is-hidden");
 
-      // Animate the first hero in on load for a nice entrance
-      this._introAnimate(this.sections[0]);
+      const startEl = this.sections[start];
+      if (this.particles && typeof this.particles.applySectionState === "function") {
+        this.particles.applySectionState(startEl, this.modeForSection[start]);
+      } else if (this.particles && typeof this.particles.setTransition === "function") {
+        this.particles.setTransition(this.modeForSection[start]);
+      }
+
+      const startCarousel = this._carouselForSection(startEl);
+      this.sections.forEach((sec) => {
+        const carousel = this._carouselForSection(sec);
+        if (!carousel) return;
+        if (carousel === startCarousel && typeof carousel.showImmediate === "function") {
+          carousel.showImmediate();
+        } else {
+          carousel.resetForEnter();
+        }
+      });
+
+      if (start === 0) {
+        this._introAnimate(this.sections[0]);
+      } else {
+        this._revealContent(startEl);
+      }
+    }
+
+    _revealContent(section) {
+      if (!section) return;
+      this._setLineState(section, 1);
+      [
+        section.querySelector(".eyebrow"),
+        section.querySelector(".tagline"),
+        section.querySelector(".body-copy"),
+      ].filter(Boolean).forEach((el) => gsap.set(el, { y: 0, opacity: 1 }));
     }
 
     _carouselForSection(sectionEl) {

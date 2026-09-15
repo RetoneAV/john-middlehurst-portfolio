@@ -37,6 +37,19 @@ function setTileImage(imgEl, index, data) {
   imgEl.src = data?.image || placeholder;
 }
 
+function itemHref(data) {
+  const slug = String(data?.slug || "").trim();
+  return slug ? `portfolio/${encodeURIComponent(slug)}.html` : "";
+}
+
+function rememberPortfolioReturn() {
+  try {
+    sessionStorage.setItem("jm-return-section", "portfolio");
+  } catch {
+    // ignore
+  }
+}
+
 export class PortfolioGrid {
   constructor(opts) {
     this.section = opts.section;
@@ -70,6 +83,10 @@ export class PortfolioGrid {
       if (title) title.textContent = data.title || `Project ${String(i + 1).padStart(2, "0")}`;
       if (tagline) tagline.textContent = data.tagline || "";
       tile.setAttribute("aria-label", data.title || `Portfolio item ${i + 1}`);
+      if (tile.tagName === "A") {
+        const href = itemHref(data);
+        if (href) tile.setAttribute("href", href);
+      }
     });
     this._updateColumns();
   }
@@ -83,6 +100,14 @@ export class PortfolioGrid {
     this._clearHover();
     this._tiles.forEach((tile) => {
       gsap.set(tile, { autoAlpha: 0, y: 28 });
+    });
+  }
+
+  showImmediate() {
+    if (this.scrollEl) this.scrollEl.scrollTop = 0;
+    this._clearHover();
+    this._tiles.forEach((tile) => {
+      gsap.set(tile, { clearProps: "transform,opacity,visibility", autoAlpha: 1, y: 0 });
     });
   }
 
@@ -178,10 +203,18 @@ export class PortfolioGrid {
     this._tiles = [];
 
     this.items.forEach((data, i) => {
-      const tile = document.createElement("article");
+      const href = itemHref(data);
+      const tile = document.createElement(href ? "a" : "article");
       tile.className = "portfolio-tile";
       tile.setAttribute("role", "listitem");
       tile.setAttribute("aria-label", data.title || `Portfolio item ${i + 1}`);
+      if (href) {
+        tile.href = href;
+        tile.addEventListener("click", rememberPortfolioReturn);
+        tile.addEventListener("auxclick", (event) => {
+          if (event.button === 1) rememberPortfolioReturn();
+        });
+      }
 
       const media = document.createElement("div");
       media.className = "portfolio-tile__media";

@@ -354,6 +354,16 @@ export class PortfolioCarousel {
     this._fadeCaptionOut();
   }
 
+  showImmediate() {
+    this._stopAutoRotate();
+    if (this._tween) this._tween.kill();
+    this.currentAngleDeg = this.targetAngle;
+    this.track.style.setProperty("--carousel-angle", `${this.currentAngleDeg}deg`);
+    if (this.stage) gsap.set(this.stage, { autoAlpha: 1 });
+    this._setCaption(this.items[this.activeIndex]);
+    this._startAutoRotate();
+  }
+
   /** Entrance timeline: spin + fade in. Returns a GSAP timeline (paused). */
   enterTimeline() {
     const tl = gsap.timeline({ paused: true });

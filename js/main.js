@@ -126,6 +126,10 @@ window.addEventListener("touchmove", onPointerMove, { passive: true });
 window.addEventListener("pointerleave", () => particles.setMouse(0, 0));
 window.addEventListener("blur", () => particles.setMouse(0, 0));
 
+// Declared before SnapScroll so applySectionState can read it during
+// construction. The WebGPU scene is created after snap exists.
+let fluid = null;
+
 // -- Background controller wrapper for scroll.js ------------------------
 // SnapScroll tweens `transitionT` on this object. We propagate to the
 // particle system and (if present) to the fluid canvas's opacity.
@@ -216,7 +220,6 @@ const snap = new SnapScroll({
 });
 
 // -- Optional WebGPU fluid scene ---------------------------------------
-let fluid = null;
 const webgpuSupported = FluidScene.isSupported() && fluidCanvas && !prefersReducedMotion;
 if (webgpuSupported) {
   fluid = new FluidScene(fluidCanvas, { params: savedPrefs.fluid });

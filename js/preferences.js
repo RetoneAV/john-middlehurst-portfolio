@@ -174,6 +174,21 @@ export function applyTextContent(content) {
 
 export const PORTFOLIO_ITEM_COUNT = 12;
 
+const PORTFOLIO_SLUGS = [
+  "guinness-storehouse",
+  "feel-the-pull",
+  "adidas-london-marathon",
+  "outernet-london",
+  "immersive-dining",
+  "control-the-swarm",
+  "holodeck-3d-room",
+  "belstaff",
+  "interactive-photobooth",
+  "realtime-interactive-ai-video",
+  "360-projections",
+  "gesture-control",
+];
+
 const PORTFOLIO_TITLES = [
   "Guinness Storehouse",
   "Feel The Pull",
@@ -226,6 +241,7 @@ export const DEFAULT_PORTFOLIO_ITEMS = Array.from(
     title: PORTFOLIO_TITLES[i] || `Project ${String(i + 1).padStart(2, "0")}`,
     tagline: PORTFOLIO_TAGLINES[i] || "Portfolio piece",
     image: `assets/portfolio/${PORTFOLIO_IMAGE_FILES[i] || `${String(i + 1).padStart(2, "0")}.jpg`}`,
+    slug: PORTFOLIO_SLUGS[i] || `project-${String(i + 1).padStart(2, "0")}`,
   })
 );
 
@@ -239,6 +255,7 @@ export function mergePortfolioItems(saved) {
         if (typeof s.title === "string") out[i].title = s.title;
         if (typeof s.tagline === "string") out[i].tagline = s.tagline;
         if (typeof s.image === "string") out[i].image = s.image.replace(/\\/g, "/");
+        if (typeof s.slug === "string" && s.slug.trim()) out[i].slug = s.slug.trim();
       }
     });
   }
