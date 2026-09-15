@@ -119,8 +119,8 @@ const OVERLAY_STYLE_DEFAULTS = {
 
 export const DEFAULT_FLUID_PARAMS = {
   particlesEnabled: true,
-  morphEnabled: false,
-  overlayEnabled: false,
+  morphEnabled: true,
+  overlayEnabled: true,
   distortionEnabled: false,
   // Fluid sim
   splatRadius: 5.9,
@@ -131,7 +131,7 @@ export const DEFAULT_FLUID_PARAMS = {
   densityDissipation: 0.94,
   dyeDissipation: 0.965,
   pressureDissipation: 0.8,
-  enableVorticity: false,
+  enableVorticity: true,
   bfecc: true,
   reflectWalls: false,
   // Particle influence
@@ -151,7 +151,7 @@ export const DEFAULT_FLUID_PARAMS = {
   aMax: 24,
   vMaxScale: 1,
   // Particle render
-  pointSize: 2.8,
+  pointSize: 2.5,
   rotationSpeed: 0,
   transitionSpinTarget: -2.17,
   particleScale: 1.8,
@@ -166,7 +166,7 @@ export const DEFAULT_FLUID_PARAMS = {
   saturationOscEnabled: true,
   saturationOscMin: 1.15,
   saturationOscMax: 2.0,
-  saturationOscPeriod: 6.0,
+  saturationOscPeriod: 3.4,
   holdSeconds: 6.5,
   morphSeconds: 4.8,
   // Shape cycle — grid only (matches production tuning).
@@ -175,16 +175,16 @@ export const DEFAULT_FLUID_PARAMS = {
     enabled: [false, false, false, false, false, true][i] ?? c.enabled !== false,
   })),
   // Overlay
-  overlayStyle: "artInk",
-  overlayIntensity: OVERLAY_STYLE_DEFAULTS.artInk.intensity,
-  overlayOpacity: 0.5,
-  overlayVelocityScale: OVERLAY_STYLE_DEFAULTS.artInk.velocityScale,
+  overlayStyle: "velocity",
+  overlayIntensity: 0.29,
+  overlayOpacity: 0.41,
+  overlayVelocityScale: 0.28,
   cursorColor: { r: 0.85, g: 0.95, b: 1 },
   vibrance: 0.5,
   liquidColor: { r: 0.85, g: 0.25, b: 1 },
   // Distortion
   distortionStyle: "simple",
-  distortionIntensity: 0.45,
+  distortionIntensity: 1.14,
 };
 
 function mergeFluidTargets(saved) {

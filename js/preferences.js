@@ -44,14 +44,14 @@ export function clearPreferences() {
 
 export const DEFAULT_LAYOUT_PARAMS = {
   textPadTopVh: 23,
-  textPadBottomVh: 31.5,
-  textMaxRem: 24,
+  textPadBottomVh: 33.5,
+  textMaxRem: 26,
   portfolioTextMaxRem: 57,
-  titleFontScale: 1,
-  textStaggerScale: 1,
-  lineStagger: 0.12,
-  bgDim: 0.4,
-  bodyTextAlpha: 0.77,
+  titleFontScale: 1.13,
+  textStaggerScale: 2.1,
+  lineStagger: 0.26,
+  bgDim: 0.46,
+  bodyTextAlpha: 0.76,
 };
 
 /** Mutates the document root's CSS custom properties for layout/UI. */

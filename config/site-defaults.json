@@ -1,8 +1,8 @@
 {
   "fluid": {
     "particlesEnabled": true,
-    "morphEnabled": false,
-    "overlayEnabled": false,
+    "morphEnabled": true,
+    "overlayEnabled": true,
     "distortionEnabled": false,
     "splatRadius": 5.9,
     "splatForce": 7,
@@ -12,7 +12,7 @@
     "densityDissipation": 0.94,
     "dyeDissipation": 0.965,
     "pressureDissipation": 0.8,
-    "enableVorticity": false,
+    "enableVorticity": true,
     "bfecc": true,
     "reflectWalls": false,
     "flowStrength": 1.05,
@@ -29,7 +29,7 @@
     "dragQuad": 0.05,
     "aMax": 24,
     "vMaxScale": 1,
-    "pointSize": 2.8,
+    "pointSize": 2.5,
     "rotationSpeed": 0,
     "transitionSpinTarget": -2.17,
     "particleScale": 1.8,
@@ -40,7 +40,7 @@
     "saturationOscEnabled": true,
     "saturationOscMin": 1.15,
     "saturationOscMax": 2,
-    "saturationOscPeriod": 6,
+    "saturationOscPeriod": 3.4,
     "holdSeconds": 6.5,
     "morphSeconds": 4.8,
     "targets": [
@@ -51,27 +51,27 @@
       { "kind": "text", "label": "Text 2", "enabled": false, "text": "GL|SL", "fontSize": 150 },
       { "kind": "grid", "label": "Grid", "enabled": true, "text": "", "fontSize": 184 }
     ],
-    "overlayStyle": "artInk",
-    "overlayIntensity": 0.85,
-    "overlayOpacity": 0.5,
-    "overlayVelocityScale": 1,
+    "overlayStyle": "velocity",
+    "overlayIntensity": 0.29,
+    "overlayOpacity": 0.41,
+    "overlayVelocityScale": 0.28,
     "cursorColor": { "r": 0.85, "g": 0.95, "b": 1 },
     "vibrance": 0.5,
     "liquidColor": { "r": 0.85, "g": 0.25, "b": 1 },
     "distortionStyle": "simple",
-    "distortionIntensity": 0.45
+    "distortionIntensity": 1.14
   },
   "snap": { "wheelThreshold": 40 },
   "layout": {
     "textPadTopVh": 23,
-    "textPadBottomVh": 31.5,
-    "textMaxRem": 24,
+    "textPadBottomVh": 33.5,
+    "textMaxRem": 26,
     "portfolioTextMaxRem": 57,
-    "titleFontScale": 1,
-    "textStaggerScale": 1,
-    "lineStagger": 0.12,
-    "bgDim": 0.4,
-    "bodyTextAlpha": 0.77
+    "titleFontScale": 1.13,
+    "textStaggerScale": 2.1,
+    "lineStagger": 0.26,
+    "bgDim": 0.46,
+    "bodyTextAlpha": 0.76
   },
   "text": {
     "hero": {
