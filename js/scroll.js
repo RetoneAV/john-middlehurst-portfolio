@@ -15,6 +15,9 @@ const DEFAULT_WHEEL_THRESHOLD = 40;     // accumulated deltaY before a snap (con
 const TRANSITION_DURATION = 1.6;        // seconds, total
 const COOLDOWN_AFTER = 250;             // ms input lockout after a snap
 const WHEEL_RESET_DELAY_MS = 220;       // ms of no input before the accumulator resets
+const INNER_EDGE_BUFFER = 520;          // extra px at a scene's scroll edge before snapping
+const INNER_EDGE_RESET_MS = 420;        // pause before the edge buffer forgets progress
+const EDGE_EPS = 2;                     // px tolerance for "at top/bottom"
 
 export class SnapScroll {
   constructor(opts) {
@@ -49,6 +52,9 @@ export class SnapScroll {
       this.wheelAccum = 0;
       this.wheelLastSign = 0;
       this.wheelResetTimer = null;
+      this.edgeBuffer = 0;
+      this.edgeBufferSign = 0;
+      this.edgeResetTimer = null;
 
       // Each section's transition target for particles: 0 = cloud, 1 = tunnel.
       // Sections beyond the second keep tunnel mode under the bg fade-out.
@@ -133,6 +139,65 @@ export class SnapScroll {
       return tl;
     }
 
+    _innerScrollEl() {
+      const section = this.sections[this.current];
+      return section?.querySelector("[data-inner-scroll]") || null;
+    }
+
+    _scrollMetrics(el) {
+      const max = Math.max(0, el.scrollHeight - el.clientHeight);
+      return {
+        top: el.scrollTop,
+        max,
+        atTop: el.scrollTop <= EDGE_EPS,
+        atBottom: el.scrollTop >= max - EDGE_EPS,
+        canScroll: max > EDGE_EPS,
+      };
+    }
+
+    _wheelDeltaPx(e) {
+      if (e.deltaMode === 1) return e.deltaY * 16;
+      if (e.deltaMode === 2) return e.deltaY * window.innerHeight;
+      return e.deltaY;
+    }
+
+    _resetEdgeBuffer() {
+      this.edgeBuffer = 0;
+      this.edgeBufferSign = 0;
+      clearTimeout(this.edgeResetTimer);
+      this.edgeResetTimer = null;
+    }
+
+    /** Scroll an inner scene pane. Returns true if the event should not snap. */
+    _handleInnerScroll(deltaY) {
+      const el = this._innerScrollEl();
+      if (!el) return false;
+
+      const metrics = this._scrollMetrics(el);
+      if (!metrics.canScroll) return false;
+
+      const sign = Math.sign(deltaY) || 1;
+      const canMove = (sign > 0 && !metrics.atBottom) || (sign < 0 && !metrics.atTop);
+      if (canMove) {
+        el.scrollTop = Math.max(0, Math.min(metrics.max, el.scrollTop + deltaY));
+        this._resetEdgeBuffer();
+        return true;
+      }
+
+      if (sign !== this.edgeBufferSign) {
+        this.edgeBuffer = 0;
+        this.edgeBufferSign = sign;
+      }
+      this.edgeBuffer += Math.abs(deltaY);
+
+      clearTimeout(this.edgeResetTimer);
+      this.edgeResetTimer = setTimeout(() => this._resetEdgeBuffer(), INNER_EDGE_RESET_MS);
+
+      if (this.edgeBuffer < INNER_EDGE_BUFFER) return true;
+      this._resetEdgeBuffer();
+      return false;
+    }
+
     _bindEvents() {
       // Wheel
       window.addEventListener(
@@ -149,15 +214,42 @@ export class SnapScroll {
 
       // Touch
       let touchStartY = null;
+      let touchStartedAtEdge = false;
+      let touchEdgeDir = 0;
       window.addEventListener("touchstart", (e) => {
         touchStartY = e.touches[0].clientY;
+        const el = this._innerScrollEl();
+        if (!el) {
+          touchStartedAtEdge = true;
+          touchEdgeDir = 0;
+          return;
+        }
+        const metrics = this._scrollMetrics(el);
+        touchStartedAtEdge = !metrics.canScroll || metrics.atTop || metrics.atBottom;
+        touchEdgeDir = metrics.atBottom ? +1 : metrics.atTop ? -1 : 0;
       }, { passive: true });
-      window.addEventListener("touchmove", (e) => { e.preventDefault(); }, { passive: false });
+      window.addEventListener("touchmove", (e) => {
+        const el = this._innerScrollEl();
+        if (el && this._scrollMetrics(el).canScroll) {
+          e.stopPropagation();
+          return;
+        }
+        e.preventDefault();
+      }, { passive: false });
       window.addEventListener("touchend", (e) => {
         if (touchStartY == null) return;
         const dy = (e.changedTouches[0].clientY - touchStartY);
-        if (Math.abs(dy) > SWIPE_THRESHOLD) {
-          this.go(dy < 0 ? +1 : -1);
+        const dir = dy < 0 ? +1 : -1;
+        const needed = touchStartedAtEdge && (touchEdgeDir === 0 || touchEdgeDir === dir)
+          ? SWIPE_THRESHOLD + INNER_EDGE_BUFFER * 0.35
+          : SWIPE_THRESHOLD;
+        const el = this._innerScrollEl();
+        const metrics = el ? this._scrollMetrics(el) : null;
+        const blockedByInner = metrics?.canScroll && (
+          (dir > 0 && !metrics.atBottom) || (dir < 0 && !metrics.atTop)
+        );
+        if (!blockedByInner && Math.abs(dy) > needed) {
+          this.go(dir);
         }
         touchStartY = null;
       });
@@ -173,8 +265,9 @@ export class SnapScroll {
 
     _onWheel(e) {
       if (this._inputLocked()) return;
-      const dy = e.deltaY;
+      const dy = this._wheelDeltaPx(e);
       if (!dy) return;
+      if (this._handleInnerScroll(dy)) return;
       const sign = Math.sign(dy);
       if (sign !== this.wheelLastSign) {
         this.wheelAccum = 0;
@@ -201,8 +294,18 @@ export class SnapScroll {
     _onKey(e) {
       const k = e.key;
       if (this._inputLocked()) return;
-      if (k === "ArrowDown" || k === "PageDown" || k === " ") { e.preventDefault(); this.go(+1); }
-      else if (k === "ArrowUp" || k === "PageUp") { e.preventDefault(); this.go(-1); }
+      if (k === "ArrowDown" || k === "PageDown" || k === " ") {
+        e.preventDefault();
+        const step = k === "PageDown" ? window.innerHeight * 0.85 : 80;
+        if (this._handleInnerScroll(step)) return;
+        this.go(+1);
+      }
+      else if (k === "ArrowUp" || k === "PageUp") {
+        e.preventDefault();
+        const step = k === "PageUp" ? -window.innerHeight * 0.85 : -80;
+        if (this._handleInnerScroll(step)) return;
+        this.go(-1);
+      }
       else if (k === "Home") { e.preventDefault(); this.goTo(0); }
       else if (k === "End")  { e.preventDefault(); this.goTo(this.sections.length - 1); }
     }
@@ -220,6 +323,7 @@ export class SnapScroll {
     goTo(idx) {
       if (idx === this.current || this._inputLocked()) return;
       if (idx < 0 || idx >= this.sections.length) return;
+      this._resetEdgeBuffer();
       this._transition(this.current, idx);
     }
 

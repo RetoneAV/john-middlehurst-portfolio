@@ -13,6 +13,7 @@ import { ParticleSystem } from "./particles.js";
 import { SnapScroll } from "./scroll.js";
 import { FluidScene } from "./fluid.js";
 import { PortfolioCarousel } from "./portfolio.js";
+import { PortfolioGrid } from "./portfolio-grid.js";
 import { mountTweakpane } from "./tweakpane-controls.js";
 import { mountContactButtons } from "./contact.js";
 import {
@@ -92,14 +93,11 @@ function bindViewportMetrics() {
 }
 bindViewportMetrics();
 
-// Portfolio carousel (scene 2). Lives in normal DOM, no canvas needed; uses
-// CSS 3D transforms driven by a single --carousel-angle on the track element.
 const portfolioSection = document.querySelector(".section--portfolio");
 const portfolio = portfolioSection
-  ? new PortfolioCarousel({
+  ? new PortfolioGrid({
       section: portfolioSection,
       items: portfolioItems,
-      centerOpensDetail: true,
     })
   : null;
 
