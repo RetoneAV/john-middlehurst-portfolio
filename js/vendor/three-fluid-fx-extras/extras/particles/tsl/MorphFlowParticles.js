@@ -184,6 +184,8 @@ export class MorphFlowParticles {
   step(params, timeSeconds, options = {}) {
     if (options.ripple) {
       this.updateRippleDestination(timeSeconds, options.ripple)
+    } else if (options.holdKind) {
+      this.holdDestination(options.holdKind)
     } else {
       this.updateDestination(timeSeconds)
     }
@@ -223,6 +225,21 @@ export class MorphFlowParticles {
       data[i + 3] = lerp(from[i + 3], to[i + 3], eased)
     }
     this.particles.setDestinationData(data)
+  }
+  /**
+   * Pin every particle to a named rest shape (e.g. sphere) without cycling.
+   */
+  holdDestination(kind) {
+    const src =
+      this._targetByKind(kind) ||
+      (kind === 'sphere'
+        ? this.createSphereTarget()
+        : kind === 'grid'
+          ? this.createGridTarget()
+          : this.targets[0])
+    if (!src) return
+    this.destinationData.set(src)
+    this.particles.setDestinationData(this.destinationData)
   }
   /**
    * Keep particles on a rest shape (default: grid) and offset Z as

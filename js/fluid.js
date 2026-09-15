@@ -74,6 +74,11 @@ export const SCENE_PARTICLE_MODES = {
       secondary: 0.38,
     },
   },
+  3: {
+    kind: "sphere",
+    particleScale: 1.08,
+    rotationSpeed: 0.14,
+  },
 };
 
 const OVERLAY_STYLE_DEFAULTS = {
@@ -341,8 +346,9 @@ export class FluidScene {
     const width = height * this.camera.aspect;
     const viewport = { height, width };
     const baseScale = Math.min(1.35, Math.max(0.58, (viewport.height * 0.82) / 4));
+    const modeScale = this._sceneMode?.particleScale ?? this.params.particleScale;
     this.particles.mesh.position.set(0, 0, 0);
-    this.particles.mesh.scale.setScalar(baseScale * this.params.particleScale);
+    this.particles.mesh.scale.setScalar(baseScale * modeScale);
   }
 
   // ---- Pipeline construction --------------------------------------------
@@ -490,7 +496,8 @@ export class FluidScene {
     this._layoutParticles();
 
     const mode = this._sceneMode;
-    if (p.morphEnabled && !mode?.ripple) this._morphTime += frameDt;
+    const lockShape = Boolean(mode?.ripple || mode?.kind);
+    if (p.morphEnabled && !lockShape) this._morphTime += frameDt;
     // Spin: lerps from base (rotationSpeed) toward transitionSpinTarget while
     // a scene transition is in flight. SnapScroll drives `_transitionSpinT`
     // from 0 → 1 (during slide-out) → 0 (during slide-in). Scene modes can
@@ -500,8 +507,9 @@ export class FluidScene {
       this.particles.mesh.rotation.set(0, 0, 0);
     } else {
       const t = this._transitionSpinT;
+      const baseSpin = mode?.rotationSpeed ?? p.rotationSpeed;
       const effectiveSpin =
-        p.rotationSpeed + (p.transitionSpinTarget - p.rotationSpeed) * t;
+        baseSpin + (p.transitionSpinTarget - baseSpin) * t;
       this._spinAngle += effectiveSpin * frameDt;
       this.particles.mesh.rotation.set(0, this._spinAngle, 0);
     }
@@ -552,7 +560,9 @@ export class FluidScene {
         mode?.ripple ? elapsed : this._morphTime,
         mode?.ripple
           ? { ripple: { ...mode.ripple, kind: mode.kind || "grid" } }
-          : undefined
+          : mode?.kind
+            ? { holdKind: mode.kind }
+            : undefined
       );
     }
 

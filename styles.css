@@ -589,13 +589,22 @@ body { background: #000; }
   }
 }
 
-/* Clients carousel: 17 items, smaller square tiles with wider spacing. */
+/* Clients carousel: larger square tiles, dropped slightly below the title. */
 .section--clients .portfolio-carousel {
-  --carousel-item-width: clamp(140px, 16vw, 220px);
+  --carousel-item-width: clamp(176px, 20vw, 280px);
   --carousel-item-height: var(--carousel-item-width);
-  --carousel-center-scale: 1.22;
-  --carousel-radius: calc(var(--carousel-item-width) * 3.35);
+  --carousel-center-scale: 1.28;
+  --carousel-radius: calc(var(--carousel-item-width) * 3.15);
   --carousel-stage-height: calc(var(--carousel-item-width) * var(--carousel-center-scale) + 2rem);
+  margin-top: clamp(2.25rem, 7vh, 5rem);
+}
+
+.section--clients .display-title .line + .line {
+  margin-top: 0.18em;
+}
+
+.section--clients .text-block__top > .display-title + .tagline {
+  margin-top: clamp(1.45rem, 3vw, 2.5rem);
 }
 
 .section--clients .carousel-item {
@@ -1245,11 +1254,19 @@ body.work-page {
   }
 
   .section--clients .portfolio-carousel {
-    --carousel-item-width: clamp(92px, 22vw, 150px);
-    --carousel-center-scale: 1.14;
+    --carousel-item-width: clamp(118px, 24vw, 190px);
+    --carousel-center-scale: 1.18;
     --carousel-radius: calc(var(--carousel-item-width) * 2.85);
-    margin-top: clamp(0.5rem, 1.5vh, 1rem);
+    margin-top: clamp(1.25rem, 4vh, 2.5rem);
     gap: clamp(0.35rem, 1.2vh, 0.75rem);
+  }
+
+  .section--clients .display-title .line + .line {
+    margin-top: 0.12em;
+  }
+
+  .section--clients .text-block__top > .display-title + .tagline {
+    margin-top: clamp(1rem, 2.5vw, 1.6rem);
   }
 
   .section--portfolio .tagline,
@@ -1338,8 +1355,9 @@ body.work-page {
   }
 
   .section--clients .portfolio-carousel {
-    --carousel-item-width: clamp(76px, 26vw, 120px);
-    --carousel-center-scale: 1.1;
+    --carousel-item-width: clamp(96px, 30vw, 156px);
+    --carousel-center-scale: 1.14;
+    margin-top: clamp(1rem, 3.5vh, 1.75rem);
   }
 
   .carousel-btn {
