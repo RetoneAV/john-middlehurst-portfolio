@@ -44,6 +44,13 @@
   /* Independent text-width cap for the portfolio scene tagline / body so
      resizing the global --text-max doesn't squeeze the portfolio copy. */
   --portfolio-text-max: 56rem;
+  --contact-btn-height: 44px;
+  /* Scene dots sit here — same inset the contact button used, so they
+     stay above the scroll hint and carousel scenes can reserve space. */
+  --scene-nav-bottom: calc(
+    clamp(1rem, 3vh, 2rem) + 2.75rem + env(safe-area-inset-bottom, 0px)
+  );
+  --contact-stack-space: calc(var(--scene-nav-bottom) + 1.5rem);
 }
 
 *,
@@ -160,9 +167,14 @@ body { background: #000; }
 }
 
 .site-nav {
+  position: fixed;
+  left: 50%;
+  bottom: var(--scene-nav-bottom);
+  z-index: 12;
   display: flex;
   gap: 0.75rem;
   align-items: center;
+  transform: translateX(-50%);
 }
 
 .nav-dot {
@@ -254,11 +266,11 @@ body { background: #000; }
 .section--portfolio,
 .section--clients {
   --carousel-section-pad-top: clamp(0.5rem, 3.5vh, 2rem);
-  --carousel-section-pad-bottom: clamp(0.5rem, 2.5vh, 1.25rem);
+  --carousel-section-pad-bottom: var(--contact-stack-space);
   padding:
     var(--carousel-section-pad-top)
     var(--section-pad-x)
-    max(var(--carousel-section-pad-bottom), env(safe-area-inset-bottom, 0px));
+    var(--carousel-section-pad-bottom);
 }
 
 .section.is-active {
@@ -411,10 +423,10 @@ body { background: #000; }
   max-width: var(--portfolio-text-max);
 }
 
-/* Portfolio carousel: 12 items, larger rectangular tiles. */
+/* Portfolio carousel: 12 items, square tiles matching the artwork. */
 .section--portfolio .portfolio-carousel {
-  --carousel-item-width: clamp(240px, 28vw, 380px);
-  --carousel-item-height: clamp(150px, 17.5vw, 240px);
+  --carousel-item-width: clamp(180px, 18vw, 240px);
+  --carousel-item-height: var(--carousel-item-width);
   --carousel-center-scale: 1.32;
   --carousel-radius: calc(var(--carousel-item-width) * 2.5);
   --carousel-stage-height: calc(var(--carousel-item-height) * var(--carousel-center-scale) + 2.5rem);
@@ -453,8 +465,8 @@ body { background: #000; }
      so the layout box always reserves enough room for the scaled centre
      card without controls/caption overlapping the artwork. */
   /* Shared defaults — overridden per scene below. */
-  --carousel-item-width: clamp(240px, 28vw, 380px);
-  --carousel-item-height: clamp(150px, 17.5vw, 240px);
+  --carousel-item-width: clamp(180px, 18vw, 240px);
+  --carousel-item-height: var(--carousel-item-width);
   --carousel-center-scale: 1.32;
   --carousel-radius: calc(var(--carousel-item-width) * 2.5);
   --carousel-stage-height: calc(var(--carousel-item-height) * var(--carousel-center-scale) + 2.5rem);
@@ -517,20 +529,33 @@ body { background: #000; }
   pointer-events: auto;
   /* Hide items at the back of the cylinder for clarity. */
   backface-visibility: hidden;
+  border-radius: 22px;
+  overflow: hidden;
 }
 
 .carousel-item.is-center {
   filter: brightness(1) saturate(1);
-  cursor: default;
   /* Centre card grows toward the viewer so it reads clearly as the focus. */
   transform: rotateY(var(--item-angle, 0deg)) translateZ(var(--carousel-radius))
     scale(var(--carousel-center-scale));
 }
 
+.section--portfolio .carousel-item.is-center.is-detail-link {
+  cursor: pointer;
+}
+
+.section--portfolio .carousel-item.is-center.is-detail-link:hover {
+  filter: brightness(1.06) saturate(1.05);
+}
+
+.carousel-item.is-center:not(.is-detail-link) {
+  cursor: default;
+}
+
 .carousel-item__media {
   width: 100%;
   height: 100%;
-  border-radius: 14px;
+  border-radius: 22px;
   overflow: hidden;
   background: transparent;
   box-shadow:
@@ -634,6 +659,135 @@ body { background: #000; }
 
 .carousel-btn svg {
   display: block;
+}
+
+/* ---------- Contact button (header, top-right) ---------- */
+.contact-btn {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 7.25rem;
+  max-width: min(calc(100vw - 8rem), 20rem);
+  height: var(--contact-btn-height);
+  padding: 0 1.35rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  background: rgba(0, 0, 0, 0.42);
+  color: var(--fg);
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  cursor: pointer;
+  pointer-events: auto;
+  overflow: hidden;
+  white-space: nowrap;
+  transition:
+    width 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    padding 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 220ms ease,
+    background 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.contact-btn:hover {
+  animation: contact-hover-glow 0.7s ease-out;
+  border-color: rgba(255, 255, 255, 0.88);
+}
+
+.contact-btn:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 3px;
+}
+
+.contact-btn.is-expanded {
+  min-width: 0;
+  padding: 0 1.1rem;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  border-color: rgba(255, 255, 255, 0.75);
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.contact-btn__text {
+  display: block;
+  line-height: 1.1;
+}
+
+.contact-btn:not(.is-expanded) .contact-btn__text {
+  font-family: var(--font-display);
+  font-size: inherit;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.contact-btn.is-expanded .contact-btn__text {
+  font-family: var(--font-body);
+  font-size: clamp(0.72rem, 2.8vw, 0.88rem);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+
+@keyframes contact-hover-glow {
+  0% {
+    box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+    filter: brightness(1);
+  }
+  35% {
+    box-shadow:
+      0 0 18px rgba(255, 255, 255, 0.35),
+      0 0 36px rgba(168, 85, 247, 0.22);
+    filter: brightness(1.12);
+  }
+  100% {
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.12);
+    filter: brightness(1);
+  }
+}
+
+@media (max-width: 900px) {
+  :root {
+    --contact-btn-height: 40px;
+  }
+
+  .contact-btn {
+    height: var(--contact-btn-height);
+    min-width: 6.5rem;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contact-btn {
+    transition: none;
+  }
+  .contact-btn:hover {
+    animation: none;
+    border-color: rgba(255, 255, 255, 0.88);
+  }
+}
+
+/* Portfolio detail page transition (index → project page) */
+.work-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  pointer-events: none;
+  visibility: hidden;
+  overflow: hidden;
+}
+
+.work-transition__panel {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  will-change: transform;
 }
 
 /* ---------- Scroll hint ---------- */
@@ -753,8 +907,8 @@ body { background: #000; }
   }
 
   .section--portfolio .portfolio-carousel {
-    --carousel-item-width: clamp(168px, 58vw, 300px);
-    --carousel-item-height: clamp(105px, 36vw, 188px);
+    --carousel-item-width: clamp(148px, 42vw, 220px);
+    --carousel-item-height: var(--carousel-item-width);
     --carousel-center-scale: 1.2;
     --carousel-radius: calc(var(--carousel-item-width) * 2.2);
     margin-top: clamp(0.5rem, 1.5vh, 1rem);
@@ -846,12 +1000,12 @@ body { background: #000; }
   .section--portfolio,
   .section--clients {
     --carousel-section-pad-top: clamp(0.25rem, 2vh, 1rem);
-    --carousel-section-pad-bottom: clamp(0.35rem, 1.5vh, 0.85rem);
+    --carousel-section-pad-bottom: var(--contact-stack-space);
   }
 
   .section--portfolio .portfolio-carousel {
-    --carousel-item-width: clamp(148px, 72vw, 260px);
-    --carousel-item-height: clamp(92px, 45vw, 162px);
+    --carousel-item-width: clamp(132px, 48vw, 200px);
+    --carousel-item-height: var(--carousel-item-width);
     --carousel-center-scale: 1.14;
   }
 
@@ -881,7 +1035,8 @@ body { background: #000; }
   }
 
   .section--portfolio .portfolio-carousel {
-    --carousel-item-height: clamp(88px, 30vw, 150px);
+    --carousel-item-width: clamp(140px, 20vw, 200px);
+    --carousel-item-height: var(--carousel-item-width);
     --carousel-center-scale: 1.1;
   }
 

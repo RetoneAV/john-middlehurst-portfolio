@@ -14,6 +14,7 @@ import { SnapScroll } from "./scroll.js";
 import { FluidScene } from "./fluid.js";
 import { PortfolioCarousel } from "./portfolio.js";
 import { mountTweakpane } from "./tweakpane-controls.js";
+import { mountContactButtons } from "./contact.js";
 import {
   loadPreferences,
   applyLayoutParams,
@@ -63,6 +64,7 @@ applyLayoutParams(layoutParams);
 // DOM before any GSAP animations run.
 const textContent = savedPrefs.text;
 applyTextContent(textContent);
+mountContactButtons();
 
 // Portfolio items (merged with defaults) — used by the carousel and shown in
 // Tweakpane so each card's text can be edited live.
@@ -94,7 +96,11 @@ bindViewportMetrics();
 // CSS 3D transforms driven by a single --carousel-angle on the track element.
 const portfolioSection = document.querySelector(".section--portfolio");
 const portfolio = portfolioSection
-  ? new PortfolioCarousel({ section: portfolioSection, items: portfolioItems })
+  ? new PortfolioCarousel({
+      section: portfolioSection,
+      items: portfolioItems,
+      centerOpensDetail: true,
+    })
   : null;
 
 const clientsSection = document.querySelector(".section--clients");
@@ -122,26 +128,121 @@ window.addEventListener("touchmove", onPointerMove, { passive: true });
 window.addEventListener("pointerleave", () => particles.setMouse(0, 0));
 window.addEventListener("blur", () => particles.setMouse(0, 0));
 
+// -- Background controller wrapper for scroll.js ------------------------
+// SnapScroll tweens `transitionT` on this object. We propagate to the
+// particle system and (if present) to the fluid canvas's opacity.
+const backgroundController = {
+  _bgOpacity: 1,
+
+  get transitionT() {
+    return particles.transitionT;
+  },
+  set transitionT(t) {
+    particles.setTransition(t);
+    this._syncFluidCanvasOpacity();
+  },
+  setTransition(t) {
+    this.transitionT = t;
+  },
+  setTransitionSpinProgress(t) {
+    if (fluid) fluid.setTransitionSpinProgress(t);
+    particles.setTransitionSpinProgress(t);
+  },
+  /** Combined canvas + fluid visibility for blank-background sections. */
+  setBgOpacity(v) {
+    this._bgOpacity = Math.max(0, Math.min(1, v));
+    document.documentElement.style.setProperty(
+      "--bg-opacity",
+      String(this._bgOpacity)
+    );
+    const pe = this._bgOpacity > 0.01 ? "auto" : "none";
+    const fluidCanvas = document.getElementById("fluid-canvas");
+    const bgCanvas = document.getElementById("bg-canvas");
+    if (fluidCanvas) fluidCanvas.style.pointerEvents = pe;
+    if (bgCanvas) bgCanvas.style.pointerEvents = pe;
+    this._syncFluidCanvasOpacity();
+  },
+  _syncFluidCanvasOpacity() {
+    if (!fluid) return;
+    const heroAlpha = 1 - Math.max(0, Math.min(1, this.transitionT));
+    const target = fluid.opacityTarget ?? 1;
+    fluid.setOpacity(heroAlpha * target * this._bgOpacity);
+  },
+  /** Apply particle mode + canvas visibility for a section index. */
+  applySectionState(sectionEl, particleT) {
+    const blank = sectionEl?.dataset.bg === "blank";
+    const t = blank ? 0 : particleT;
+    this.setBgOpacity(blank ? 0 : 1);
+    this.setTransition(t);
+    if (typeof this.setTransitionSpinProgress === "function") {
+      this.setTransitionSpinProgress(0);
+    }
+  },
+};
+
+const HASH_SECTIONS = {
+  portfolio: 2,
+  clients: 3,
+  about: 1,
+  hero: 0,
+  intro: 0,
+};
+
+function resolveInitialSection() {
+  try {
+    const returnKey = sessionStorage.getItem("jm-return-section");
+    if (returnKey) {
+      sessionStorage.removeItem("jm-return-section");
+      const fromStore = HASH_SECTIONS[returnKey.toLowerCase()];
+      if (typeof fromStore === "number") return fromStore;
+    }
+  } catch {
+    // ignore
+  }
+
+  const hashKey = window.location.hash.replace(/^#/, "").toLowerCase();
+  if (!hashKey) return 0;
+  const fromHash = HASH_SECTIONS[hashKey] ?? parseInt(hashKey, 10);
+  return Number.isFinite(fromHash) && fromHash > 0 ? fromHash : 0;
+}
+
+const initialSection = resolveInitialSection();
+
+const snap = new SnapScroll({
+  particles: backgroundController,
+  portfolio,
+  clients,
+  params: savedPrefs.snap,
+  layoutParams,
+  initialSection,
+});
+
 // -- Optional WebGPU fluid scene ---------------------------------------
 let fluid = null;
 const webgpuSupported = FluidScene.isSupported() && fluidCanvas && !prefersReducedMotion;
 if (webgpuSupported) {
   fluid = new FluidScene(fluidCanvas, { params: savedPrefs.fluid });
-  particles.heroMode = "fluid"; // skip the vortex on the bg-canvas; fluid handles the hero
-  fluid.setOpacity(0);          // fade in once initialised
+  particles.heroMode = "fluid";
+  fluid.setOpacity(0);
+  fluid.opacityTarget = 0;
 
-  // Initialise async; failures fall back to the vortex
   fluid
     .init()
     .then(() => {
-      // Fade fluid in over ~1 second
-      gsap.to(fluid, {
-        opacityTarget: 1,
-        duration: 1.0,
-        ease: "power2.out",
-        onUpdate: () => fluid.setOpacity(fluid.opacityTarget),
-      });
-      // Tweakpane is a dev tool — if it fails to mount, log and keep going.
+      const onHero = snap.current === 0;
+      if (onHero) {
+        fluid.opacityTarget = 1;
+        gsap.to(fluid, {
+          opacityTarget: 1,
+          duration: 1.0,
+          ease: "power2.out",
+          onUpdate: () => backgroundController._syncFluidCanvasOpacity(),
+        });
+      } else {
+        fluid.opacityTarget = 0;
+        backgroundController._syncFluidCanvasOpacity();
+      }
+
       try {
         mountTweakpane(
           fluid,
@@ -166,54 +267,9 @@ if (webgpuSupported) {
       if (fluidCanvas) fluidCanvas.style.display = "none";
     });
 } else {
-  // No WebGPU (or reduced motion). Use the existing vortex on the WebGL canvas.
   if (fluidCanvas) fluidCanvas.style.display = "none";
   particles.heroMode = "vortex";
 }
-
-// -- Background controller wrapper for scroll.js ------------------------
-// SnapScroll tweens `transitionT` on this object. We propagate to the
-// particle system and (if present) to the fluid canvas's opacity.
-// `setTransitionSpinProgress` is called by SnapScroll's transition timeline
-// to drive a temporary spin boost on the fluid scene during the text
-// slide-out / slide-in phases.
-const backgroundController = {
-  get transitionT() {
-    return particles.transitionT;
-  },
-  set transitionT(t) {
-    particles.setTransition(t);
-    if (fluid) {
-      // Hero (t=0): fluid fully visible. About (t=1): fluid hidden.
-      // Multiply by fluid's own intro fade target so the initial fade-in still applies.
-      const heroAlpha = 1 - Math.max(0, Math.min(1, t));
-      fluid.setOpacity(heroAlpha * (fluid.opacityTarget ?? 1));
-    }
-  },
-  setTransition(t) {
-    this.transitionT = t;
-  },
-  setTransitionSpinProgress(t) {
-    if (fluid) fluid.setTransitionSpinProgress(t);
-    particles.setTransitionSpinProgress(t);
-  },
-  /** 0..1 visibility for the bg + fluid canvases. SnapScroll fades it down
-   *  when entering a section marked data-bg="blank" (e.g. portfolio). */
-  setBgOpacity(v) {
-    document.documentElement.style.setProperty(
-      "--bg-opacity",
-      String(Math.max(0, Math.min(1, v)))
-    );
-  },
-};
-
-const snap = new SnapScroll({
-  particles: backgroundController,
-  portfolio,
-  clients,
-  params: savedPrefs.snap,
-  layoutParams,
-});
 
 // Expose for debugging
 window.__app = { particles, fluid, snap, portfolio, clients, background: backgroundController };
