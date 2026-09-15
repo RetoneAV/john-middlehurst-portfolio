@@ -95,11 +95,11 @@ const OVERLAY_STYLE_DEFAULTS = {
 
 export const DEFAULT_FLUID_PARAMS = {
   particlesEnabled: true,
-  morphEnabled: true,
-  overlayEnabled: true,
-  distortionEnabled: true,
+  morphEnabled: false,
+  overlayEnabled: false,
+  distortionEnabled: false,
   // Fluid sim
-  splatRadius: 14,
+  splatRadius: 5.9,
   splatForce: 7,
   pressureIterations: 10,
   curlStrength: 0.18,
@@ -120,17 +120,17 @@ export const DEFAULT_FLUID_PARAMS = {
   sideVariation: 1,
   depthAttenuationScale: 2,
   // Physics
-  spring: 4,
-  zeta: 1.15,
+  spring: 3.99,
+  zeta: 0.68,
   dragLin: 0.28,
   dragQuad: 0.05,
   aMax: 24,
   vMaxScale: 1,
   // Particle render
-  pointSize: 7.7,
-  rotationSpeed: 0.08,
-  transitionSpinTarget: 2,
-  particleScale: 0.98,
+  pointSize: 2.8,
+  rotationSpeed: 0,
+  transitionSpinTarget: -2.17,
+  particleScale: 1.8,
   particlePrimary: { r: 0.95, g: 0.5, b: 0.2 },
   particleSecondary: { r: 0.4, g: 0.3, b: 0.95 },
   particleColorMix: 0,
@@ -145,10 +145,10 @@ export const DEFAULT_FLUID_PARAMS = {
   saturationOscPeriod: 6.0,
   holdSeconds: 6.5,
   morphSeconds: 4.8,
-  // Shape cycle — sphere + trefoil + grid (matches production tuning).
+  // Shape cycle — grid only (matches production tuning).
   targets: DEFAULT_TARGET_CONFIGS.map((c, i) => ({
     ...c,
-    enabled: [true, false, true, false, false, true][i] ?? c.enabled !== false,
+    enabled: [false, false, false, false, false, true][i] ?? c.enabled !== false,
   })),
   // Overlay
   overlayStyle: "artInk",

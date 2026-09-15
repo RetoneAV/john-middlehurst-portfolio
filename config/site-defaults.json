@@ -1,10 +1,10 @@
 {
   "fluid": {
     "particlesEnabled": true,
-    "morphEnabled": true,
-    "overlayEnabled": true,
-    "distortionEnabled": true,
-    "splatRadius": 14,
+    "morphEnabled": false,
+    "overlayEnabled": false,
+    "distortionEnabled": false,
+    "splatRadius": 5.9,
     "splatForce": 7,
     "pressureIterations": 10,
     "curlStrength": 0.18,
@@ -23,16 +23,16 @@
     "perpendicularAngle": 1.25,
     "sideVariation": 1,
     "depthAttenuationScale": 2,
-    "spring": 4,
-    "zeta": 1.15,
+    "spring": 3.99,
+    "zeta": 0.68,
     "dragLin": 0.28,
     "dragQuad": 0.05,
     "aMax": 24,
     "vMaxScale": 1,
-    "pointSize": 7.7,
-    "rotationSpeed": 0.08,
-    "transitionSpinTarget": 2,
-    "particleScale": 0.98,
+    "pointSize": 2.8,
+    "rotationSpeed": 0,
+    "transitionSpinTarget": -2.17,
+    "particleScale": 1.8,
     "particlePrimary": { "r": 0.95, "g": 0.5, "b": 0.2 },
     "particleSecondary": { "r": 0.4, "g": 0.3, "b": 0.95 },
     "particleColorMix": 0,
@@ -44,11 +44,12 @@
     "holdSeconds": 6.5,
     "morphSeconds": 4.8,
     "targets": [
-      { "kind": "sphere", "label": "Sphere", "enabled": true, "text": "", "fontSize": 184 },
+      { "kind": "sphere", "label": "Sphere", "enabled": false, "text": "", "fontSize": 184 },
       { "kind": "tetra", "label": "Tetra", "enabled": false, "text": "", "fontSize": 184 },
-      { "kind": "trefoil", "label": "Trefoil", "enabled": true, "text": "", "fontSize": 184 },
+      { "kind": "trefoil", "label": "Trefoil", "enabled": false, "text": "", "fontSize": 184 },
       { "kind": "text", "label": "Text 1", "enabled": false, "text": "TSL", "fontSize": 184 },
-      { "kind": "text", "label": "Text 2", "enabled": false, "text": "GL|SL", "fontSize": 150 }
+      { "kind": "text", "label": "Text 2", "enabled": false, "text": "GL|SL", "fontSize": 150 },
+      { "kind": "grid", "label": "Grid", "enabled": true, "text": "", "fontSize": 184 }
     ],
     "overlayStyle": "artInk",
     "overlayIntensity": 0.85,
@@ -62,15 +63,15 @@
   },
   "snap": { "wheelThreshold": 40 },
   "layout": {
-    "textPadTopVh": 14,
+    "textPadTopVh": 23,
     "textPadBottomVh": 31.5,
-    "textMaxRem": 25,
-    "portfolioTextMaxRem": 56,
+    "textMaxRem": 24,
+    "portfolioTextMaxRem": 57,
     "titleFontScale": 1,
     "textStaggerScale": 1,
     "lineStagger": 0.12,
     "bgDim": 0.4,
-    "bodyTextAlpha": 0.64
+    "bodyTextAlpha": 0.77
   },
   "text": {
     "hero": {

@@ -43,15 +43,15 @@ export function clearPreferences() {
 /* ---------- Layout / page-level params (live-edited via Tweakpane) ---------- */
 
 export const DEFAULT_LAYOUT_PARAMS = {
-  textPadTopVh: 14,
+  textPadTopVh: 23,
   textPadBottomVh: 31.5,
-  textMaxRem: 25,
-  portfolioTextMaxRem: 56,
+  textMaxRem: 24,
+  portfolioTextMaxRem: 57,
   titleFontScale: 1,
   textStaggerScale: 1,
   lineStagger: 0.12,
   bgDim: 0.4,
-  bodyTextAlpha: 0.64,
+  bodyTextAlpha: 0.77,
 };
 
 /** Mutates the document root's CSS custom properties for layout/UI. */
