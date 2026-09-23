@@ -1100,6 +1100,7 @@ body.work-page {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  align-items: flex-start;
   gap: 1rem;
   margin-top: 2rem;
 }
@@ -1111,7 +1112,9 @@ body.work-page {
   max-width: 22rem;
 }
 
-.work-portrait .work-media video {
+.work-portrait .work-media video,
+.work-portrait .work-media img {
+  display: block;
   width: 100%;
   height: auto;
   object-fit: contain;
