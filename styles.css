@@ -1100,7 +1100,6 @@ body.work-page {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  align-items: flex-start;
   gap: 1rem;
   margin-top: 2rem;
 }
@@ -1108,28 +1107,11 @@ body.work-page {
 .work-portrait .work-media {
   margin: 0;
   flex: 1 1 16rem;
-  width: auto;
-  min-width: 0;
-  max-width: min(22rem, 100%);
+  width: 100%;
+  max-width: 22rem;
 }
 
-@media (min-width: 40rem) {
-  .work-split {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 22rem));
-    justify-content: center;
-    align-items: start;
-  }
-
-  .work-split .work-media {
-    width: 100%;
-    max-width: none;
-  }
-}
-
-.work-portrait .work-media video,
-.work-portrait .work-media img {
-  display: block;
+.work-portrait .work-media video {
   width: 100%;
   height: auto;
   object-fit: contain;
