@@ -12,8 +12,8 @@ import { gsap } from "gsap";
 import { ParticleSystem } from "./particles.js";
 import { SnapScroll } from "./scroll.js";
 import { FluidScene } from "./fluid.js";
+import { PortfolioCarousel } from "./portfolio.js";
 import { PortfolioGrid } from "./portfolio-grid.js";
-import { ClientsWall } from "./clients-wall.js";
 import { mountTweakpane } from "./tweakpane-controls.js";
 import { mountContactButtons } from "./contact.js";
 import {
@@ -103,9 +103,12 @@ const portfolio = portfolioSection
 
 const clientsSection = document.querySelector(".section--clients");
 const clients = clientsSection
-  ? new ClientsWall({
+  ? new PortfolioCarousel({
       section: clientsSection,
       items: clientItems,
+      clickToCenter: false,
+      autoRotate: true,
+      autoRotateInterval: 2000,
     })
   : null;
 
