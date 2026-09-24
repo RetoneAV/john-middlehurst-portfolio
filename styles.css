@@ -621,6 +621,42 @@ body { background: #000; }
   margin-top: clamp(1.45rem, 3vw, 2.5rem);
 }
 
+/* Wide screens: pull the clients copy up so the carousel clears the
+   bottom edge in a full-height window. Phone layout is unchanged. */
+@media (min-width: 901px) {
+  .section--clients .text-block__top--centered {
+    margin-top: 0;
+  }
+
+  .section--clients .display-title {
+    font-size: clamp(
+      calc(2.35rem * var(--title-font-scale)),
+      calc(5.6vw * var(--title-font-scale)),
+      calc(4.75rem * var(--title-font-scale))
+    );
+  }
+
+  .section--clients .display-title .line + .line {
+    margin-top: 0.04em;
+  }
+
+  .section--clients .text-block__top > * + * {
+    margin-top: 0.7rem;
+  }
+
+  .section--clients .text-block__top > .display-title + .tagline {
+    margin-top: 0.85rem;
+  }
+
+  .section--clients .body-copy {
+    line-height: 1.45;
+  }
+
+  .section--clients .portfolio-carousel {
+    margin-top: 0.85rem;
+  }
+}
+
 .section--clients .carousel-item {
   cursor: default;
   pointer-events: none;
