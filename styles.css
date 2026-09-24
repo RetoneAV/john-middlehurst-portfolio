@@ -593,7 +593,7 @@ body { background: #000; }
    Tile size follows the leftover height so the centre card and caption stay
    inside the viewport instead of being clipped. */
 .section--clients .portfolio-carousel {
-  --carousel-item-width-pref: clamp(176px, 20vw, 280px);
+  --carousel-item-width-pref: clamp(176px, 18vw, 220px);
   --carousel-center-scale: 1.28;
   container-type: size;
   margin-top: clamp(1.25rem, 4vh, 2.75rem);
@@ -604,7 +604,8 @@ body { background: #000; }
     72px,
     min(
       var(--carousel-item-width-pref),
-      calc((100cqh - 5.5rem) / var(--carousel-center-scale))
+      calc((100svh - 34rem) / var(--carousel-center-scale)),
+      calc((100cqh - 7.5rem) / var(--carousel-center-scale))
     )
   );
   --carousel-item-height: var(--carousel-item-width);
