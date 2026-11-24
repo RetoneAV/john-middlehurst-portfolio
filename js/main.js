@@ -123,6 +123,25 @@ window.addEventListener("touchmove", onPointerMove, { passive: true });
 window.addEventListener("pointerleave", () => particles.setMouse(0, 0));
 window.addEventListener("blur", () => particles.setMouse(0, 0));
 
+// The portfolio grid sits above the fluid canvas. Forward cursor movement
+// so the simulation still reacts across that page, not only at the edges.
+if (fluidCanvas) {
+  window.addEventListener("pointermove", (e) => {
+    if (e.target === fluidCanvas || fluidCanvas.style.display === "none") return;
+    fluidCanvas.dispatchEvent(new PointerEvent("pointermove", {
+      bubbles: false,
+      cancelable: true,
+      clientX: e.clientX,
+      clientY: e.clientY,
+      movementX: e.movementX,
+      movementY: e.movementY,
+      pointerId: e.pointerId,
+      pointerType: e.pointerType,
+      isPrimary: e.isPrimary,
+    }));
+  }, { passive: true });
+}
+
 // Declared before SnapScroll so applySectionState can read it during
 // construction. The WebGPU scene is created after snap exists.
 let fluid = null;
