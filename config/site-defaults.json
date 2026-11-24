@@ -75,7 +75,7 @@
   },
   "text": {
     "hero": {
-      "eyebrow": "JM Studios",
+      "eyebrow": "",
       "titleLine1": "John",
       "titleLine2": "Middlehurst",
       "tagline": "Creative technologist and artist specialising in real-time interactive design and development",
@@ -133,22 +133,19 @@
     { "title": "Gesture Control", "tagline": "Real-Time Facial Analysis", "image": "assets/portfolio/gesture-control/tile.png" }
   ],
   "clients": [
-    { "title": "", "tagline": "", "image": "assets/clients/Adidas_55df4.jpg" },
-    { "title": "", "tagline": "", "image": "assets/clients/Spotify_ef334.png" },
-    { "title": "", "tagline": "", "image": "assets/clients/PA_7b36e.jpg" },
-    { "title": "", "tagline": "", "image": "assets/clients/Brit_Awards_1137a.jpeg" },
-    { "title": "", "tagline": "", "image": "assets/clients/Guinness_2c485.jpg" },
-    { "title": "", "tagline": "", "image": "assets/clients/Belstaff_5cea6.jpg" },
-    { "title": "", "tagline": "", "image": "assets/clients/Outernet_354e4.png" },
-    { "title": "", "tagline": "", "image": "assets/clients/PA_7b36e.jpg" },
-    { "title": "", "tagline": "", "image": "assets/clients/BBH_London_318ba.jpeg" },
-    { "title": "", "tagline": "", "image": "assets/clients/cdw_sq_936fe.webp" },
-    { "title": "", "tagline": "", "image": "assets/clients/AAO_6d051.jpg" },
-    { "title": "", "tagline": "", "image": "assets/clients/Genentech-Logo.wine_afc41.png" },
-    { "title": "", "tagline": "", "image": "assets/clients/rsa.jpg" },
-    { "title": "", "tagline": "", "image": "assets/clients/modon.webp" },
-    { "title": "", "tagline": "", "image": "assets/clients/baby_teeth_logo.jpg" },
-    { "title": "", "tagline": "", "image": "assets/clients/engageWorks.jpg" },
-    { "title": "", "tagline": "", "image": "assets/clients/MotionMapping.jpg" }
+    { "title": "", "tagline": "", "image": "assets/clients/svg_logos/adidas.svg" },
+    { "title": "", "tagline": "", "image": "assets/clients/svg_logos/spotify.png" },
+    { "title": "", "tagline": "", "image": "assets/clients/svg_logos/pa_logo.png" },
+    { "title": "", "tagline": "", "image": "assets/clients/svg_logos/britawards.png" },
+    { "title": "", "tagline": "", "image": "assets/clients/svg_logos/guinness.png" },
+    { "title": "", "tagline": "", "image": "assets/clients/svg_logos/belstaff.png" },
+    { "title": "", "tagline": "", "image": "assets/clients/svg_logos/outernet.png" },
+    { "title": "", "tagline": "", "image": "assets/clients/svg_logos/bbh.svg" },
+    { "title": "", "tagline": "", "image": "assets/clients/svg_logos/rsa.png" },
+    { "title": "", "tagline": "", "image": "assets/clients/svg_logos/modon.png" },
+    { "title": "", "tagline": "", "image": "assets/clients/svg_logos/engage.png" },
+    { "title": "", "tagline": "", "image": "assets/clients/svg_logos/motionmapping.png" },
+    { "title": "", "tagline": "", "image": "assets/clients/svg_logos/londonmarathon.png" },
+    { "title": "", "tagline": "", "image": "assets/clients/svg_logos/cdw.png" }
   ]
 }

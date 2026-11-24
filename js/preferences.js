@@ -87,7 +87,7 @@ export function applyLayoutParams(params) {
 
 export const DEFAULT_TEXT_CONTENT = {
   hero: {
-    eyebrow:    "JM Studios",
+    eyebrow:    "",
     titleLine1: "John",
     titleLine2: "Middlehurst",
     tagline:    "Creative technologist and artist specialising in real-time interactive design and development",
@@ -319,41 +319,44 @@ export function mergePortfolioItems(saved) {
 
 /* ---------- Client items (per-card title + tagline + image) ---------- */
 
-export const CLIENT_ITEM_COUNT = 17;
+export const CLIENT_ITEM_COUNT = 14;
 
 /** Client logos in carousel order (titles/taglines intentionally blank). */
 export const DEFAULT_CLIENT_ITEMS = [
-  { title: "", tagline: "", image: "assets/clients/Adidas_55df4.jpg" },
-  { title: "", tagline: "", image: "assets/clients/Spotify_ef334.png" },
-  { title: "", tagline: "", image: "assets/clients/PA_7b36e.jpg" },
-  { title: "", tagline: "", image: "assets/clients/Brit_Awards_1137a.jpeg" },
-  { title: "", tagline: "", image: "assets/clients/Guinness_2c485.jpg" },
-  { title: "", tagline: "", image: "assets/clients/Belstaff_5cea6.jpg" },
-  { title: "", tagline: "", image: "assets/clients/Outernet_354e4.png" },
-  { title: "", tagline: "", image: "assets/clients/PA_7b36e.jpg" },
-  { title: "", tagline: "", image: "assets/clients/BBH_London_318ba.jpeg" },
-  { title: "", tagline: "", image: "assets/clients/cdw_sq_936fe.webp" },
-  { title: "", tagline: "", image: "assets/clients/AAO_6d051.jpg" },
-  { title: "", tagline: "", image: "assets/clients/Genentech-Logo.wine_afc41.png" },
-  { title: "", tagline: "", image: "assets/clients/rsa.jpg" },
-  { title: "", tagline: "", image: "assets/clients/modon.webp" },
-  { title: "", tagline: "", image: "assets/clients/baby_teeth_logo.jpg" },
-  { title: "", tagline: "", image: "assets/clients/engageWorks.jpg" },
-  { title: "", tagline: "", image: "assets/clients/MotionMapping.jpg" },
+  { title: "", tagline: "", image: "assets/clients/svg_logos/adidas.svg" },
+  { title: "", tagline: "", image: "assets/clients/svg_logos/spotify.png" },
+  { title: "", tagline: "", image: "assets/clients/svg_logos/pa_logo.png" },
+  { title: "", tagline: "", image: "assets/clients/svg_logos/britawards.png" },
+  { title: "", tagline: "", image: "assets/clients/svg_logos/guinness.png" },
+  { title: "", tagline: "", image: "assets/clients/svg_logos/belstaff.png" },
+  { title: "", tagline: "", image: "assets/clients/svg_logos/outernet.png" },
+  { title: "", tagline: "", image: "assets/clients/svg_logos/bbh.svg" },
+  { title: "", tagline: "", image: "assets/clients/svg_logos/rsa.png" },
+  { title: "", tagline: "", image: "assets/clients/svg_logos/modon.png" },
+  { title: "", tagline: "", image: "assets/clients/svg_logos/engage.png" },
+  { title: "", tagline: "", image: "assets/clients/svg_logos/motionmapping.png" },
+  { title: "", tagline: "", image: "assets/clients/svg_logos/londonmarathon.png" },
+  { title: "", tagline: "", image: "assets/clients/svg_logos/cdw.png" },
 ];
 
 /** Returns a fresh client-items array (saved values override defaults). */
 export function mergeClientItems(saved) {
-  const out = DEFAULT_CLIENT_ITEMS.map((d, i) => ({ ...d }));
-  if (Array.isArray(saved)) {
-    saved.forEach((s, i) => {
-      if (i >= out.length) return;
-      if (s && typeof s === "object") {
-        if (typeof s.title === "string") out[i].title = s.title;
-        if (typeof s.tagline === "string") out[i].tagline = s.tagline;
-        if (typeof s.image === "string") out[i].image = s.image.replace(/\\/g, "/");
-      }
-    });
+  const out = DEFAULT_CLIENT_ITEMS.map((d) => ({ ...d }));
+  if (!Array.isArray(saved)) return out;
+  // Match saved prefs by filename so newly added comparison logos are not
+  // covered by the logo that used to sit at that index.
+  const byFile = new Map(out.map((item) => [item.image.split("/").pop(), item]));
+  const retired = ["/pa.svg", "/brit-awards.png", "/engageworks.png", "/engageworks.svg", "/adidas2.svg", "/genentech.svg", "/rsa.svg"];
+  for (const s of saved) {
+    if (!s || typeof s !== "object" || typeof s.image !== "string") continue;
+    const image = s.image.replace(/\\/g, "/");
+    const item = byFile.get(image.split("/").pop());
+    if (!item) continue;
+    if (typeof s.title === "string") item.title = s.title;
+    if (typeof s.tagline === "string") item.tagline = s.tagline;
+    if (image.includes("/svg_logos/") && !retired.some((end) => image.endsWith(end))) {
+      item.image = image;
+    }
   }
   return out;
 }

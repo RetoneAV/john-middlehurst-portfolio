@@ -171,9 +171,11 @@ export class SnapScroll {
       gsap.set([eyebrow, tagline, body].filter(Boolean), { y: 28, opacity: 0 });
 
       const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
-      tl.to(stage, { x: 0, opacity: 1, duration: 1.2 }, 0)
-        .to(eyebrow, { y: 0, opacity: 1, duration: 0.7 }, 0.15 * stag)
-        .to(lines, { y: "0%", duration: 0.95, stagger: lineStag }, 0.3 * stag)
+      tl.to(stage, { x: 0, opacity: 1, duration: 1.2 }, 0);
+      if (eyebrow) {
+        tl.to(eyebrow, { y: 0, opacity: 1, duration: 0.7 }, 0.15 * stag);
+      }
+      tl.to(lines, { y: "0%", duration: 0.95, stagger: lineStag }, 0.3 * stag)
         .to(tagline, { y: 0, opacity: 1, duration: 0.8 }, 0.7 * stag)
         .to(body, { y: 0, opacity: 1, duration: 0.9 }, 1.0 * stag);
 

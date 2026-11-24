@@ -12,7 +12,7 @@ import { gsap } from "gsap";
 import { ParticleSystem } from "./particles.js";
 import { SnapScroll } from "./scroll.js";
 import { FluidScene } from "./fluid.js";
-import { PortfolioCarousel } from "./portfolio.js";
+import { ClientMarquee } from "./clients-marquee.js";
 import { PortfolioGrid } from "./portfolio-grid.js";
 import { mountTweakpane } from "./tweakpane-controls.js";
 import { mountContactButtons } from "./contact.js";
@@ -103,12 +103,9 @@ const portfolio = portfolioSection
 
 const clientsSection = document.querySelector(".section--clients");
 const clients = clientsSection
-  ? new PortfolioCarousel({
+  ? new ClientMarquee({
       section: clientsSection,
       items: clientItems,
-      clickToCenter: false,
-      autoRotate: true,
-      autoRotateInterval: 2000,
     })
   : null;
 
