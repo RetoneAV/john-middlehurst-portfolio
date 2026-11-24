@@ -102,14 +102,33 @@ export class ParticleSystem {
       // Merge user params over defaults; expose as `.params` for tweakpane.
       this.params = { ...DEFAULT_TUNNEL_PARAMS, ...(opts.params || {}) };
 
+      // Public state is ready even if WebGL cannot start, so navigation and
+      // the WebGPU background still run when this renderer is unavailable.
+      this.transitionT = 0;
+      this.heroMode = "vortex";
+      this.mouseTarget = new THREE.Vector2(0, 0);
+      this.mouse = new THREE.Vector2(0, 0);
+      this.tunnelOffset = new THREE.Vector2(0, 0);
+      this.tunnelSpinAngle = 0;
+      this._transitionSpinT = 0;
+      this.time = 0;
+      this.available = false;
+
       // --- Renderer (shared by vortex + tunnel) ---
-      this.renderer = new THREE.WebGLRenderer({
-        canvas: canvas,
-        antialias: false,
-        alpha: true,
-        premultipliedAlpha: false,
-        powerPreference: "high-performance",
-      });
+      try {
+        this.renderer = new THREE.WebGLRenderer({
+          canvas: canvas,
+          antialias: false,
+          alpha: true,
+          premultipliedAlpha: false,
+          powerPreference: "high-performance",
+        });
+      } catch (err) {
+        console.warn("WebGL background unavailable; the rest of the page will keep running.", err);
+        this.renderer = null;
+        return;
+      }
+      this.available = true;
       this.renderer.setClearColor(0x000000, 1);
       this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
       this.renderer.setSize(window.innerWidth, window.innerHeight, false);
@@ -122,18 +141,8 @@ export class ParticleSystem {
       this._buildTunnel();
       this._applyParamsToUniforms();
 
-      // --- State ---
-      this.transitionT = 0;             // 0 = vortex/hero, 1 = tunnel/about
       // 'vortex' renders the procedural vortex (fallback path).
       // 'fluid'  skips the vortex because a separate WebGPU canvas is showing the fluid scene on top.
-      this.heroMode = "vortex";
-      this.mouseTarget = new THREE.Vector2(0, 0);
-      this.mouse = new THREE.Vector2(0, 0);
-      this.tunnelOffset = new THREE.Vector2(0, 0);
-      this.tunnelSpinAngle = 0;          // accumulated rotation of the ring (radians)
-      this._transitionSpinT = 0;          // 0..1..0 envelope from SnapScroll
-      this.time = 0;
-
       window.addEventListener("resize", () => this.resize());
     }
 
@@ -232,10 +241,11 @@ export class ParticleSystem {
 
     setMouse(x, y) {
       this.mouseTarget.set(x, y);
-      this.vortex.setMouse(x, y);
+      if (this.vortex) this.vortex.setMouse(x, y);
     }
 
     setDpr(dpr) {
+      if (!this.renderer) return;
       const d = Math.min(dpr, 2);
       this.renderer.setPixelRatio(d);
       this.vortex.setSize(window.innerWidth, window.innerHeight);
@@ -245,7 +255,7 @@ export class ParticleSystem {
     setParams(partial) {
       if (!partial) return;
       Object.assign(this.params, partial);
-      this._applyParamsToUniforms();
+      if (this.material) this._applyParamsToUniforms();
     }
 
     /** 0..1..0 envelope driven by SnapScroll's transition timeline. Drives a
@@ -267,6 +277,7 @@ export class ParticleSystem {
     }
 
     resize() {
+      if (!this.renderer) return;
       const w = window.innerWidth;
       const h = window.innerHeight;
       this.renderer.setSize(w, h, false);
@@ -287,6 +298,7 @@ export class ParticleSystem {
     // ---- Per-frame ----------------------------------------------------
 
     update(dt) {
+      if (!this.renderer) return;
       dt = Math.min(dt, 1 / 30);
       this.time += dt;
 
