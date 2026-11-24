@@ -415,10 +415,17 @@ body { background: #000; }
 }
 
 /* Centre the logo strip on the particle sphere. The copy sits in the
-   space above it, so the whole clients block moves down together. */
+   space above it. minmax(0, 1fr) keeps the two halves equal when the
+   headline grows with the window width, so the strip stays centred. */
 .section--clients .text-block {
   display: grid;
-  grid-template-rows: 1fr auto 1fr;
+  /* One full-width column. The logo strip's 100vw margin would otherwise
+     collapse this track to half the window and pin the text to the left. */
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto minmax(0, 1fr);
+  justify-items: stretch;
+  /* Sit the title and logo strip just below the middle of the sphere. */
+  transform: translateY(clamp(1.5rem, 3.5vh, 2.75rem));
 }
 
 .text-block__top--centered {
@@ -434,8 +441,24 @@ body { background: #000; }
 .section--clients .text-block__top--centered {
   grid-row: 1;
   align-self: end;
+  min-height: 0;
   margin-top: 0;
   margin-bottom: clamp(1.25rem, 3.5vh, 2.25rem);
+}
+
+/* Size this scene from the window height. Width-based sizes grow the
+   headline when the window is stretched sideways and shove the strip
+   off the centre of the sphere. */
+.section--clients .display-title {
+  font-size: clamp(
+    calc(2.5rem * var(--title-font-scale)),
+    calc(10.5vh * var(--title-font-scale)),
+    calc(7.5rem * var(--title-font-scale))
+  );
+}
+
+.section--clients .text-block__top > * + * {
+  margin-top: clamp(0.75rem, 1.5vh, 1.25rem);
 }
 
 .text-block__top--centered .eyebrow,
@@ -456,6 +479,14 @@ body { background: #000; }
 .section--portfolio .body-copy,
 .section--clients .body-copy {
   max-width: var(--portfolio-text-max);
+}
+
+.section--clients .tagline {
+  font-size: clamp(1.125rem, 2.2vh, 1.5rem);
+}
+
+.section--clients .body-copy {
+  font-size: clamp(0.95rem, 1.5vh, 1.0625rem);
 }
 
 /* ---------- Portfolio grid ---------- */
@@ -624,6 +655,8 @@ body { background: #000; }
 .section--clients .client-marquee {
   grid-row: 2;
   align-self: center;
+  justify-self: stretch;
+  min-width: 0;
   width: 100vw;
   margin-top: 0;
   margin-left: calc(50% - 50vw);
@@ -1401,7 +1434,7 @@ body.work-page {
   }
 
   .section--clients .text-block__top > .display-title + .tagline {
-    margin-top: clamp(1rem, 2.5vw, 1.6rem);
+    margin-top: clamp(1rem, 2vh, 1.6rem);
   }
 
   .section--portfolio .tagline,
