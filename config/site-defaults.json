@@ -118,6 +118,7 @@
     "tunnelSpeed": 1.3
   },
   "portfolio": [
+    { "title": "Modon", "tagline": "Interactive Waterfalls", "image": "assets/portfolio/modon/tile.jpg" },
     { "title": "Guinness Storehouse", "tagline": "Interactive Floor Experience", "image": "assets/portfolio/guinness-storehouse/tile.jpeg" },
     { "title": "Feel The Pull", "tagline": "Interactive Art Installation", "image": "assets/portfolio/feel-the-pull/tile.png" },
     { "title": "Adidas London Marathon", "tagline": "Interactive Brand Activation", "image": "assets/portfolio/adidas-london-marathon/tile.png" },

@@ -172,9 +172,10 @@ export function applyTextContent(content) {
 
 /* ---------- Portfolio items (per-card title + tagline) ---------- */
 
-export const PORTFOLIO_ITEM_COUNT = 12;
+export const PORTFOLIO_ITEM_COUNT = 13;
 
 const PORTFOLIO_SLUGS = [
+  "modon",
   "guinness-storehouse",
   "feel-the-pull",
   "adidas-london-marathon",
@@ -190,6 +191,7 @@ const PORTFOLIO_SLUGS = [
 ];
 
 const PORTFOLIO_TITLES = [
+  "Modon",
   "Guinness Storehouse",
   "Feel The Pull",
   "Adidas London Marathon",
@@ -205,6 +207,7 @@ const PORTFOLIO_TITLES = [
 ];
 
 const PORTFOLIO_TAGLINES = [
+  "Interactive Waterfalls",
   "Interactive Floor Experience",
   "Interactive Art Installation",
   "Interactive Brand Activation",
@@ -221,6 +224,7 @@ const PORTFOLIO_TAGLINES = [
 
 /** Tile filename extensions under assets/portfolio/<slug>/tile.<ext> */
 const PORTFOLIO_TILE_EXTS = [
+  "jpg",
   "jpeg",
   "png",
   "png",
@@ -237,6 +241,7 @@ const PORTFOLIO_TILE_EXTS = [
 
 /** Pre-restructure tile filenames; used to migrate saved Tweakpane paths. */
 const LEGACY_PORTFOLIO_IMAGE_FILES = [
+  null,
   "01-guinness.jpeg",
   "02-cdw.png",
   "03-adizero.png",
@@ -277,23 +282,38 @@ export const DEFAULT_PORTFOLIO_ITEMS = Array.from(
   })
 );
 
-/** Returns a fresh portfolio-items array (saved values override defaults). */
-export function mergePortfolioItems(saved) {
-  const out = DEFAULT_PORTFOLIO_ITEMS.map((d, i) => ({ ...d }));
-  if (Array.isArray(saved)) {
-    saved.forEach((s, i) => {
-      if (i >= out.length) return;
-      if (s && typeof s === "object") {
-        if (typeof s.title === "string") out[i].title = s.title;
-        if (typeof s.tagline === "string") out[i].tagline = s.tagline;
-        if (typeof s.image === "string") {
-          const image = s.image.replace(/\\/g, "/");
-          if (!isLegacyPortfolioImage(image, i)) out[i].image = image;
-        }
-        if (typeof s.slug === "string" && s.slug.trim()) out[i].slug = s.slug.trim();
-      }
-    });
+function applySavedPortfolioItem(target, saved, index) {
+  if (!saved || typeof saved !== "object") return;
+  if (typeof saved.title === "string") target.title = saved.title;
+  if (typeof saved.tagline === "string") target.tagline = saved.tagline;
+  if (typeof saved.image === "string") {
+    const image = saved.image.replace(/\\/g, "/");
+    if (!isLegacyPortfolioImage(image, index)) target.image = image;
   }
+  if (typeof saved.slug === "string" && saved.slug.trim()) target.slug = saved.slug.trim();
+}
+
+/** Returns a fresh portfolio-items array (saved values override defaults).
+ *  Saved cards match by slug so a newly added project is not overwritten
+ *  by an older list stored in the browser. */
+export function mergePortfolioItems(saved) {
+  const out = DEFAULT_PORTFOLIO_ITEMS.map((d) => ({ ...d }));
+  if (!Array.isArray(saved)) return out;
+
+  const savedWithSlugs = saved.filter(
+    (s) => s && typeof s.slug === "string" && s.slug.trim()
+  );
+  if (savedWithSlugs.length) {
+    const bySlug = new Map(savedWithSlugs.map((s) => [s.slug.trim(), s]));
+    out.forEach((item, i) => {
+      const match = bySlug.get(item.slug);
+      if (match) applySavedPortfolioItem(item, match, i);
+    });
+    return out;
+  }
+
+  if (saved.length !== out.length) return out;
+  saved.forEach((s, i) => applySavedPortfolioItem(out[i], s, i));
   return out;
 }
 

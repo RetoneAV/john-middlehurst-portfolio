@@ -55,8 +55,39 @@ const server = http.createServer((req, res) => {
     }
     const ext = path.extname(filePath).toLowerCase();
     const type = MIME[ext] || "application/octet-stream";
+    const range = req.headers.range;
+
+    if (range) {
+      const match = /bytes=(\d*)-(\d*)/.exec(range);
+      const size = stat.size;
+      if (!match) {
+        res.writeHead(416, { "Content-Range": `bytes */${size}` });
+        res.end();
+        return;
+      }
+      let start = match[1] ? parseInt(match[1], 10) : 0;
+      let end = match[2] ? parseInt(match[2], 10) : size - 1;
+      if (Number.isNaN(start) || Number.isNaN(end) || start < 0 || end < start || start >= size) {
+        res.writeHead(416, { "Content-Range": `bytes */${size}` });
+        res.end();
+        return;
+      }
+      end = Math.min(end, size - 1);
+      res.writeHead(206, {
+        "Content-Type": type,
+        "Content-Range": `bytes ${start}-${end}/${size}`,
+        "Accept-Ranges": "bytes",
+        "Content-Length": end - start + 1,
+        "Cache-Control": "no-store",
+      });
+      fs.createReadStream(filePath, { start, end }).pipe(res);
+      return;
+    }
+
     res.writeHead(200, {
       "Content-Type": type,
+      "Content-Length": stat.size,
+      "Accept-Ranges": "bytes",
       "Cache-Control": "no-store",
     });
     fs.createReadStream(filePath).pipe(res);

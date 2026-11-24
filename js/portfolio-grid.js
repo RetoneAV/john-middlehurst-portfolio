@@ -195,6 +195,9 @@ export class PortfolioGrid {
         break;
       }
     }
+    // 13 projects only divides by 1, which stretches every tile to the
+    // full row. Keep the denser grid and centre the short last row.
+    if (cols === 1 && cap > 1) cols = cap;
     this.track.style.setProperty("--portfolio-cols", String(cols));
   }
 

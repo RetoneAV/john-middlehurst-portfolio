@@ -137,9 +137,7 @@ body { background: #000; }
   left: 0;
   right: 0;
   z-index: 10;
-  display: flex;
   align-items: center;
-  justify-content: space-between;
   padding:
     max(1rem, env(safe-area-inset-top, 0px))
     clamp(1.5rem, 4vw, 3rem)
@@ -157,21 +155,39 @@ body { background: #000; }
 .brand {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 1.125rem;
-  letter-spacing: 0.18em;
+  font-size: 1.05rem;
+  letter-spacing: 0.14em;
   color: var(--fg);
   mix-blend-mode: difference;
+  white-space: nowrap;
+}
+
+.site-header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+}
+
+.work-header__start,
+.brand {
+  grid-column: 1;
+  justify-self: start;
 }
 
 .site-nav {
-  position: fixed;
-  left: 50%;
-  bottom: var(--scene-nav-bottom);
+  position: relative;
+  grid-column: 2;
   z-index: 12;
   display: flex;
   gap: 0.75rem;
   align-items: center;
-  transform: translateX(-50%);
+  justify-self: center;
+}
+
+.settings-toggle,
+.contact-btn {
+  grid-column: 3;
+  justify-self: end;
 }
 
 .nav-dot {
@@ -470,6 +486,7 @@ body { background: #000; }
   flex: 0 0 calc((100% - (var(--portfolio-cols) - 1) * var(--portfolio-gap)) / var(--portfolio-cols));
   width: calc((100% - (var(--portfolio-cols) - 1) * var(--portfolio-gap)) / var(--portfolio-cols));
   max-width: calc((100% - (var(--portfolio-cols) - 1) * var(--portfolio-gap)) / var(--portfolio-cols));
+  min-width: 0;
   aspect-ratio: 1;
   border: 0;
   padding: 0;
@@ -611,50 +628,6 @@ body { background: #000; }
   --carousel-item-height: var(--carousel-item-width);
   --carousel-radius: calc(var(--carousel-item-width) * 3.15);
   --carousel-stage-height: calc(var(--carousel-item-width) * var(--carousel-center-scale) + 0.75rem);
-}
-
-.section--clients .display-title .line + .line {
-  margin-top: 0.18em;
-}
-
-.section--clients .text-block__top > .display-title + .tagline {
-  margin-top: clamp(1.45rem, 3vw, 2.5rem);
-}
-
-/* Wide screens: pull the clients copy up so the carousel clears the
-   bottom edge in a full-height window. Phone layout is unchanged. */
-@media (min-width: 901px) {
-  .section--clients .text-block__top--centered {
-    margin-top: 0;
-  }
-
-  .section--clients .display-title {
-    font-size: clamp(
-      calc(2.35rem * var(--title-font-scale)),
-      calc(5.6vw * var(--title-font-scale)),
-      calc(4.75rem * var(--title-font-scale))
-    );
-  }
-
-  .section--clients .display-title .line + .line {
-    margin-top: 0.04em;
-  }
-
-  .section--clients .text-block__top > * + * {
-    margin-top: 0.7rem;
-  }
-
-  .section--clients .text-block__top > .display-title + .tagline {
-    margin-top: 0.85rem;
-  }
-
-  .section--clients .body-copy {
-    line-height: 1.45;
-  }
-
-  .section--clients .portfolio-carousel {
-    margin-top: 0.85rem;
-  }
 }
 
 .section--clients .carousel-item {
@@ -1259,7 +1232,7 @@ body.work-page {
 /* ---------- Scroll hint ---------- */
 .scroll-hint {
   position: fixed;
-  bottom: calc(var(--scene-nav-bottom) + 1.65rem);
+  bottom: var(--scene-nav-bottom);
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
@@ -1446,8 +1419,12 @@ body.work-page {
   }
 
   .brand {
-    font-size: 1rem;
-    letter-spacing: 0.14em;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+  }
+
+  .site-nav {
+    gap: 0.55rem;
   }
 
   .nav-dot {
