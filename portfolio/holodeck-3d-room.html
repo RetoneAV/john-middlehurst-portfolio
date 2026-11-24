@@ -6,15 +6,28 @@
   <title>Holodeck 3D Room — John Middlehurst</title>
   <meta name="description" content="3D parallax rooms programmed in TouchDesigner. A Kinect tracks your head so a flat screen, projection, or LED wall opens into another world." />
   <meta name="theme-color" content="#000000" />
+  <link rel="icon" href="/favicon.png" type="image/png" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="../styles.css" />
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://esm.sh/three@0.183.2",
+      "three/webgpu": "https://esm.sh/three@0.183.2/webgpu",
+      "three/tsl": "https://esm.sh/three@0.183.2/tsl",
+      "three-fluid-fx/tsl": "https://esm.sh/three-fluid-fx@0.1.0/tsl?external=three,three/webgpu,three/tsl",
+      "gsap": "https://esm.sh/gsap@3.12.5"
+    }
+  }
+  </script>
   <script type="module" src="../js/work.js"></script>
 </head>
 <body class="work-page">
+  <canvas id="fluid-canvas" aria-hidden="true"></canvas>
   <header class="site-header" role="banner">
     <div class="work-header__start">
       <a class="brand" href="../index.html#portfolio" aria-label="John Middlehurst home">JM STUDIO</a>

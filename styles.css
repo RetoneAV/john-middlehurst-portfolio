@@ -1086,6 +1086,11 @@ body.work-page {
   min-height: 100dvh;
 }
 
+body.work-page #fluid-canvas {
+  z-index: 0;
+  pointer-events: none;
+}
+
 .work-header__start {
   display: flex;
   align-items: center;
